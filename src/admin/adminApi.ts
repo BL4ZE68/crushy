@@ -127,7 +127,7 @@ export function getAdminFields(section: AdminSection): AdminField[] {
         { name: 'artist', label: 'Artiste', placeholder: 'Nom de l’artiste' },
         { name: 'mood', label: 'Humeur', type: 'select', options: moods },
         { name: 'genre', label: 'Genre', placeholder: 'Pop, Indie…' },
-        { name: 'platform_url', label: 'Lien Spotify ou YouTube Music', placeholder: 'https://open.spotify.com/…' },
+        { name: 'platform_url', label: 'Lien Spotify', placeholder: 'https://open.spotify.com/…' },
         categoryField('music'),
         { name: 'is_published', label: 'Publication', type: 'select', options: publicationOptions },
       ];

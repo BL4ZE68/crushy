@@ -273,7 +273,7 @@ export function AdminContentManager({ section }: Props) {
       })}
 
       <Modal animationType="fade" onRequestClose={() => setPicker(null)} transparent visible={Boolean(picker)}>
-        <View style={styles.overlay}>
+        <View style={[styles.overlay, { backgroundColor: palette.overlay }]}>
           {picker ? (
             <View style={[styles.pickerCard, { backgroundColor: palette.surface }]}>
               <Text style={[styles.formTitle, { color: palette.text }]}>Programmer la publication</Text>
@@ -364,7 +364,7 @@ const styles = StyleSheet.create({
   itemActions: { flexDirection: 'row', justifyContent: 'flex-end', marginTop: 5 },
   actionButton: { minHeight: 38, justifyContent: 'center', paddingHorizontal: 9 },
   actionText: { fontSize: 12, fontFamily: designTokens.typography.bold },
-  overlay: { flex: 1, backgroundColor: '#211B2C99', justifyContent: 'center', padding: 22 },
+  overlay: { flex: 1, justifyContent: 'center', padding: 22 },
   pickerCard: { borderRadius: designTokens.radius.xl, padding: 18 },
   pickerSummary: { textAlign: 'center', fontSize: 13, marginTop: 8 },
 });

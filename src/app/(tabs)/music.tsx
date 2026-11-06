@@ -17,7 +17,6 @@ import {
   trackRecommendations,
 } from '../../music/recommendations';
 
-type MusicPlatform = 'spotify' | 'youtube';
 type GenreFilter = MusicGenre | string;
 
 const moodLabels: Record<Mood, string> = {
@@ -42,7 +41,6 @@ export default function MusicScreen() {
   const savedMood = useCrushyStore((state) => state.mood);
   const setSavedMood = useCrushyStore((state) => state.setMood);
   const [selected, setSelected] = useState<Mood>(savedMood ?? 'rêveuse');
-  const [platform, setPlatform] = useState<MusicPlatform>('spotify');
   const [genre, setGenre] = useState<GenreFilter>('Tout');
   const [publishedTracks, setPublishedTracks] = useState<ManagedTrack[]>([]);
   const [contentError, setContentError] = useState('');
@@ -95,7 +93,7 @@ export default function MusicScreen() {
   }
 
   return (
-    <CrushyScreen eyebrow="BANDE-SON DE TON MOMENT" title="Music mood" subtitle="Des idées personnalisées, à écouter sur les plateformes officielles.">
+    <CrushyScreen eyebrow="BANDE-SON DE TON MOMENT" title="Music mood" subtitle="Des idées et des playlists personnalisées à découvrir sur Spotify.">
       <SectionHeading>Choisis ton humeur</SectionHeading>
       <View style={styles.moods}>
         {musicMoods.map((mood) => {
@@ -142,7 +140,7 @@ export default function MusicScreen() {
         <Pressable
           accessibilityRole="link"
           key={`${track.artist}-${track.title}`}
-          onPress={() => void openExternalLink(track.platformUrl ?? getMusicSearchUrl(track.title, track.artist, platform))}
+          onPress={() => void openExternalLink(track.platformUrl ?? getMusicSearchUrl(track.title, track.artist))}
           style={({ pressed }) => [styles.track, { backgroundColor: palette.surface, borderColor: palette.border, opacity: pressed ? 0.82 : 1 }]}
         >
           <View style={[styles.trackIcon, { backgroundColor: palette.surfaceAlt }]}>
@@ -158,40 +156,21 @@ export default function MusicScreen() {
         <CrushyStateMessage message="Essaie un autre genre pour découvrir d’autres titres." title="Rien dans cette catégorie" />
       )}
 
-      <SectionHeading>Ta playlist du moment</SectionHeading>
-      <View style={styles.platforms}>
-        {([
-          ['spotify', 'Spotify'],
-          ['youtube', 'YouTube Music'],
-        ] as const).map(([id, label]) => {
-          const active = platform === id;
-          return (
-            <Pressable
-              accessibilityRole="button"
-              accessibilityState={{ selected: active }}
-              key={id}
-              onPress={() => setPlatform(id)}
-              style={[styles.platform, { backgroundColor: active ? palette.text : palette.surfaceAlt }]}
-            >
-              <Text style={[styles.platformText, { color: active ? palette.background : palette.text }]}>{label}</Text>
-            </Pressable>
-          );
-        })}
-      </View>
+      <SectionHeading>Ta playlist Spotify</SectionHeading>
       <Pressable
         accessibilityRole="link"
-        onPress={() => void openExternalLink(getPlaylistSearchUrl(selected, platform))}
+        onPress={() => void openExternalLink(getPlaylistSearchUrl(selected))}
         style={({ pressed }) => [styles.playlist, { backgroundColor: palette.pink, opacity: pressed ? 0.82 : 1 }]}
       >
         <View style={styles.playlistCopy}>
-          <Text style={[styles.playlistEyebrow, { color: palette.text }]}>PLAYLIST PERSONNALISÉE</Text>
+          <Text style={[styles.playlistEyebrow, { color: palette.text }]}>PLAYLIST SPOTIFY</Text>
           <Text style={[styles.playlistTitle, { color: palette.text }]}>{moodLabels[selected]} · pour ton humeur</Text>
-          <Text style={[styles.playlistSubtitle, { color: palette.text }]}>Ouvrir la recherche sur {platform === 'spotify' ? 'Spotify' : 'YouTube Music'}</Text>
+          <Text style={[styles.playlistSubtitle, { color: palette.text }]}>Trouver une playlist sur Spotify</Text>
         </View>
         <Ionicons name="open-outline" size={21} color={palette.text} />
       </Pressable>
       <Text style={[styles.disclaimer, { color: palette.subtle }]}>
-        CRUSHY ne lit ni ne stocke de morceaux. Les suggestions et recherches sont des liens externes ; disponibilité selon la plateforme et ta région.
+        CRUSHY ne lit ni ne stocke de morceaux. Les titres et playlists s’ouvrent dans Spotify ; disponibilité selon ton compte et ta région.
       </Text>
     </CrushyScreen>
   );
@@ -212,9 +191,6 @@ const styles = StyleSheet.create({
   trackCopy: { flex: 1, marginLeft: 11 },
   trackTitle: { fontSize: 14, fontFamily: designTokens.typography.bold },
   trackArtist: { fontSize: 11, marginTop: 3 },
-  platforms: { flexDirection: 'row', gap: 9 },
-  platform: { flex: 1, minHeight: 42, borderRadius: designTokens.radius.md, alignItems: 'center', justifyContent: 'center' },
-  platformText: { fontSize: 12, fontFamily: designTokens.typography.bold },
   playlist: { borderRadius: designTokens.radius.lg, minHeight: 100, padding: 16, flexDirection: 'row', alignItems: 'center', marginTop: 11 },
   playlistCopy: { flex: 1, paddingRight: 8 },
   playlistEyebrow: { fontSize: 9, letterSpacing: 1.1, fontFamily: designTokens.typography.bold },

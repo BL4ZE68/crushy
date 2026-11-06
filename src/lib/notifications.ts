@@ -15,7 +15,7 @@ export async function requestNotificationPermission(): Promise<boolean> {
     await Notifications.setNotificationChannelAsync('crushy-updates', {
       name: 'Petites surprises',
       importance: Notifications.AndroidImportance.DEFAULT,
-      lightColor: '#FF6FAE',
+      lightColor: '#B53D5E',
     });
   }
 

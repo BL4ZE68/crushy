@@ -2,10 +2,12 @@ import { useRouter } from 'expo-router';
 import { StyleSheet, Text, View } from 'react-native';
 import { CrushyButton } from '../../components/CrushyButton';
 import { CrushyScreen, SectionHeading } from '../../components/CrushyScreen';
+import { CrushyMascot } from '../../components/CrushyMascot';
 import { FeatureCard } from '../../components/FeatureCard';
 import { designTokens } from '../../theme/theme';
 import { useCrushyTheme } from '../../theme/useCrushyTheme';
 import { useCrushyStore } from '../../store/useCrushyStore';
+import { useReducedMotion } from 'react-native-reanimated';
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -13,6 +15,7 @@ export default function HomeScreen() {
   const mood = useCrushyStore((state) => state.mood);
   const xp = useCrushyStore((state) => state.xp);
   const { palette } = useCrushyTheme();
+  const reduceMotion = useReducedMotion();
 
   return (
     <CrushyScreen eyebrow="TA PETITE BULLE DE BONNE HUMEUR" title={`Coucou ${nickname} !`} subtitle="Prête à transformer une petite pause en bon moment ?">
@@ -22,10 +25,7 @@ export default function HomeScreen() {
           <Text style={[styles.heroTitle, { color: palette.text }]}>Un sourire{'\n'}à la fois.</Text>
           <Text style={[styles.heroSmall, { color: palette.text }]}>{xp} XP récoltés tout doucement</Text>
         </View>
-        <View style={[styles.heroBadge, { backgroundColor: palette.surface }]}>
-          <Text style={[styles.heroBadgeText, { color: palette.accent }]}>+{xp}</Text>
-          <Text style={[styles.heroBadgeLabel, { color: palette.subtle }]}>XP</Text>
-        </View>
+        <CrushyMascot reduceMotion={reduceMotion} size="compact" />
       </View>
 
       <SectionHeading>Ton humeur</SectionHeading>
@@ -65,14 +65,11 @@ function PressMoodCard({ mood, onPress }: { mood: string | null; onPress: () => 
 }
 
 const styles = StyleSheet.create({
-  hero: { borderRadius: designTokens.radius.xl, minHeight: 160, padding: 20, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  hero: { borderRadius: designTokens.radius.xl, minHeight: 170, padding: 16, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   heroCopy: { flex: 1 },
   heroEyebrow: { fontSize: 10, letterSpacing: 1.1, fontFamily: designTokens.typography.bold },
   heroTitle: { fontSize: 28, lineHeight: 31, fontFamily: designTokens.typography.extraBold, marginTop: 7 },
   heroSmall: { fontSize: 12, marginTop: 8, opacity: 0.85 },
-  heroBadge: { width: 60, height: 60, borderRadius: 23, alignItems: 'center', justifyContent: 'center', marginLeft: 10 },
-  heroBadgeText: { fontSize: 18, fontFamily: designTokens.typography.extraBold },
-  heroBadgeLabel: { fontSize: 10, marginTop: -2 },
   moodCard: { borderWidth: 1, borderRadius: designTokens.radius.lg, padding: 14, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   moodText: { flex: 1 },
   moodTitle: { fontSize: 14, fontFamily: designTokens.typography.bold },

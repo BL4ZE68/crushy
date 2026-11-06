@@ -92,9 +92,9 @@ test('music suggestions and external search links exist for every mood without e
   for (const mood of musicMoods) {
     assert.ok(trackRecommendations[mood].length >= 3);
     assert.ok(musicQuotes[mood]);
-    assert.match(getPlaylistSearchUrl(mood, 'spotify'), /^https:\/\/open\.spotify\.com\/search\//);
+    assert.match(getPlaylistSearchUrl(mood), /^https:\/\/open\.spotify\.com\/search\/.+\/playlists$/);
   }
-  assert.match(getMusicSearchUrl('La vie en rose', 'Édith Piaf', 'youtube'), /^https:\/\/music\.youtube\.com\/search\?q=/);
+  assert.match(getMusicSearchUrl('La vie en rose', 'Édith Piaf'), /^https:\/\/open\.spotify\.com\/search\//);
 });
 
 test('achievements unlock once when their thresholds are reached', () => {

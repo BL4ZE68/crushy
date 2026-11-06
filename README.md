@@ -4,9 +4,9 @@ Application mobile Expo / React Native en TypeScript, conçue pour Android et de
 
 ## Base — design PLAYFUL LOVE
 
-- Palette douce et sémantique avec thèmes clair et sombre.
+- Palette crème, rose gelée et cacao inspirée de Pip, avec thèmes clair et sombre.
 - Nunito chargé localement (Regular, Bold et ExtraBold).
-- Mascotte originale Pip avec animation Reanimated douce, désactivée lorsque le système demande une réduction des animations.
+- Illustration de Pip fournie pour CRUSHY, affichée sur l’accueil et l’écran de bienvenue, avec flottement Reanimated désactivé si le système demande une réduction des animations.
 - Composants et layouts adaptatifs avec gestion des zones de sécurité Android.
 
 ## Phase 2 — navigation et fondations techniques
@@ -34,7 +34,7 @@ Les contenus de jeux sont embarqués dans `src/games/gameData.ts`; leur administ
 ## Modules 5 à 9 — contenu, progression et profil
 
 - **Surprises :** compliments, messages secrets, citations originales, lettres et blagues ; états lu/non lu/verrouillé/à venir, déblocages XP, ouverture animée et programmation locale date/heure. Une notification système est planifiée si les notifications sont autorisées.
-- **Musique :** les six humeurs, recommandations de morceaux, filtres par genre, playlists de recherche personnalisées et citations originales ; écoute via Spotify ou YouTube Music, sans audio intégré.
+- **Musique :** les six humeurs, recommandations de morceaux, filtres par genre, playlists Spotify personnalisées selon l’humeur et citations originales ; écoute sur Spotify, sans audio intégré.
 - **Humeur du jour :** citation, blague, défi, pensée positive et question amusante adaptés à l’humeur, contenus stables pour la journée et défi quotidien récompensé une seule fois.
 - **Récompenses :** niveaux XP, badges automatiques, récompense cachée, bonus XP de déblocage, animations respectant la réduction des animations et historique local des activités.
 - **Mon espace :** pseudo validé avec Zod, avatars, humeur, progression, badges et accès aux réglages de notification.
@@ -60,7 +60,7 @@ Les horaires de programmation personnelle et les données de progression restent
 
 ### Configuration Supabase
 
-1. Crée un projet Supabase et exécute `supabase/migrations/20261106100000_admin_dashboard.sql` dans le SQL Editor.
+1. Crée un projet Supabase et exécute les migrations du dossier `supabase/migrations/` dans l’ordre chronologique.
 2. Dans **Authentication → Settings**, désactive les inscriptions publiques, puis crée le compte du propriétaire dans **Authentication → Users**. Ne crée pas de compte admin en utilisant l’application.
 3. Dans le SQL Editor, accorde le rôle au compte créé en remplaçant l’adresse ci-dessous :
 

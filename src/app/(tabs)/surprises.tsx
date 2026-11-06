@@ -318,7 +318,7 @@ export default function SurprisesScreen() {
       })}
 
       <Modal animationType="fade" onRequestClose={() => setSelectedId(null)} transparent visible={Boolean(selected)}>
-        <View style={styles.overlay}>
+        <View style={[styles.overlay, { backgroundColor: palette.overlay }]}>
           {selected ? (
             <Animated.View entering={reduceMotion ? undefined : FadeInUp.duration(220)} style={[styles.messageCard, { backgroundColor: palette.surface }]}>
               <View style={[styles.messageSeal, { backgroundColor: palette.pink }]}>
@@ -335,7 +335,7 @@ export default function SurprisesScreen() {
       </Modal>
 
       <Modal animationType="fade" onRequestClose={() => setScheduleTargetId(null)} transparent visible={Boolean(scheduleTarget)}>
-        <View style={styles.overlay}>
+        <View style={[styles.overlay, { backgroundColor: palette.overlay }]}>
           {scheduleTarget ? (
             <View style={[styles.scheduleCard, { backgroundColor: palette.surface }]}>
               <Text style={[styles.messageKind, { color: palette.accent }]}>PROGRAMMER UNE SURPRISE</Text>
@@ -386,7 +386,7 @@ const styles = StyleSheet.create({
   scheduleText: { fontSize: 12, fontFamily: designTokens.typography.bold },
   cancelSchedule: { alignSelf: 'flex-end', padding: 8, minHeight: 36, justifyContent: 'center' },
   cancelScheduleText: { fontSize: 12, fontFamily: designTokens.typography.bold },
-  overlay: { flex: 1, backgroundColor: '#211B2C99', justifyContent: 'center', padding: 24 },
+  overlay: { flex: 1, justifyContent: 'center', padding: 24 },
   messageCard: { borderRadius: designTokens.radius.xl, padding: 24, alignItems: 'center' },
   messageSeal: { width: 54, height: 54, borderRadius: 20, alignItems: 'center', justifyContent: 'center', marginBottom: 13 },
   messageKind: { fontSize: 10, letterSpacing: 1.1, fontFamily: designTokens.typography.bold },

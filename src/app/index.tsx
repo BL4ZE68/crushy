@@ -25,7 +25,7 @@ export default function SplashScreen() {
     <View style={[styles.container, { backgroundColor: palette.background }]}>
       <Animated.View entering={reducedMotion ? undefined : FadeIn.duration(220)} style={styles.brand}>
         <View style={[styles.mark, { backgroundColor: palette.pink }]}>
-          <Text style={styles.heart}>♥</Text>
+          <Text style={[styles.heart, { color: palette.text }]}>♥</Text>
         </View>
         <Text style={[styles.title, { color: palette.text }]}>CRUSHY</Text>
         <Text style={[styles.subtitle, { color: palette.subtle }]}>L’ennui n’a aucune chance avec toi.</Text>
@@ -39,7 +39,7 @@ const styles = StyleSheet.create({
   container: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 28 },
   brand: { alignItems: 'center' },
   mark: { width: 70, height: 70, borderRadius: 26, alignItems: 'center', justifyContent: 'center', marginBottom: 18 },
-  heart: { color: '#51416D', fontSize: 32 },
+  heart: { fontSize: 32 },
   title: { fontSize: 28, letterSpacing: 3, fontFamily: designTokens.typography.extraBold },
   subtitle: { fontSize: 14, marginTop: 8, fontFamily: designTokens.typography.regular },
   loading: { position: 'absolute', bottom: 54 },

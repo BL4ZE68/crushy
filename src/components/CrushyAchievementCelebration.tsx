@@ -12,8 +12,6 @@ import { useCrushyStore } from '../store/useCrushyStore';
 import { useCrushyTheme } from '../theme/useCrushyTheme';
 import { designTokens } from '../theme/theme';
 
-const confettiColors = ['#FF6FAE', '#C8B6FF', '#FFE58F', '#FFB6D5', '#51416D'];
-
 export function CrushyAchievementCelebration() {
   const hasHydrated = useCrushyStore((state) => state.hasHydrated);
   const unlockedIds = useCrushyStore((state) => state.unlockedAchievements);
@@ -43,7 +41,9 @@ export function CrushyAchievementCelebration() {
 
   return (
     <View pointerEvents="none" style={StyleSheet.absoluteFill}>
-      {!reduceMotion ? <ConfettiRain /> : null}
+      {!reduceMotion ? (
+        <ConfettiRain colors={[palette.accent, palette.pink, palette.lavender, palette.yellow, palette.text]} />
+      ) : null}
       <Animated.View
         accessibilityLiveRegion="polite"
         accessibilityRole="alert"
@@ -58,13 +58,13 @@ export function CrushyAchievementCelebration() {
   );
 }
 
-function ConfettiRain() {
+function ConfettiRain({ colors }: { colors: string[] }) {
   const { width, height } = useWindowDimensions();
   return (
     <View style={StyleSheet.absoluteFill}>
       {Array.from({ length: 16 }, (_, index) => (
         <ConfettiPiece
-          color={confettiColors[index % confettiColors.length]}
+          color={colors[index % colors.length]}
           height={height}
           index={index}
           key={index}

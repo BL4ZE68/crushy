@@ -34,7 +34,7 @@ export const managedTrackSchema = z.object({
   mood: moodSchema,
   genre: z.string(),
   platform_url: z.string().url().refine(
-    (value) => /^https:\/\/(open\.spotify\.com|music\.youtube\.com)\//i.test(value),
+    (value) => /^https:\/\/open\.spotify\.com\//i.test(value),
     'Lien musical non pris en charge.',
   ),
 });
@@ -108,6 +108,7 @@ export async function fetchPublishedMusic(mood: Mood): Promise<ManagedTrack[]> {
     .select('title, artist, mood, genre, platform_url')
     .eq('is_published', true)
     .eq('mood', mood)
+    .ilike('platform_url', 'https://open.spotify.com/%')
     .order('created_at', { ascending: false })
     .limit(50);
   if (error) throw new Error(error.message);

@@ -33,7 +33,7 @@ test('admin publication rejects impossible dates and excessive XP values', () =>
   assert.equal('error' in excessiveXp, true);
 });
 
-test('admin music links allow only Spotify and YouTube Music URLs', () => {
+test('admin music links allow Spotify only', () => {
   const base = {
     title: 'Morceau',
     artist: 'Artiste',
@@ -49,6 +49,10 @@ test('admin music links allow only Spotify and YouTube Music URLs', () => {
   assert.equal('error' in validateAdminForm('music', {
     ...base,
     platform_url: 'https://attacker.example/music',
+  }), true);
+  assert.equal('error' in validateAdminForm('music', {
+    ...base,
+    platform_url: 'https://music.youtube.com/watch?v=example',
   }), true);
 });
 

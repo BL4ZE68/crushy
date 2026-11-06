@@ -30,7 +30,7 @@
         "expo-notifications",
         {
           "defaultChannel": "crushy-updates",
-          "color": "#FF6FAE"
+          "color": "#B53D5E"
         }
       ],
       "expo-secure-store",

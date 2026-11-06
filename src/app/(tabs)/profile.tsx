@@ -61,7 +61,7 @@ export default function ProfileScreen() {
                 accessibilityState={{ selected: active }}
                 key={avatar.id}
                 onPress={() => setAvatarId(avatar.id)}
-                style={[styles.avatarOption, { backgroundColor: active ? palette.surface : '#FFFFFF80' }]}
+                style={[styles.avatarOption, { backgroundColor: active ? palette.surface : palette.surfaceAlt }]}
               >
                 <Ionicons name={avatar.icon} size={17} color={palette.text} />
               </Pressable>

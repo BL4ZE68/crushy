@@ -85,8 +85,8 @@ const schemas: Record<AdminSection, z.ZodType<Record<string, unknown>, AdminForm
     mood: z.enum(['heureuse', 'triste', 'amoureuse', 'énergique', 'fatiguée', 'rêveuse']),
     genre: requiredText('Le genre est obligatoire.', 80),
     platform_url: z.string().trim().url('Saisis un lien valide.').refine(
-      (value) => /^https:\/\/(open\.spotify\.com|music\.youtube\.com)\//i.test(value),
-      'Le lien doit provenir de Spotify ou YouTube Music.',
+      (value) => /^https:\/\/open\.spotify\.com\//i.test(value),
+      'Le lien doit provenir de Spotify.',
     ),
     category_id: optionalUuid,
     is_published: published,

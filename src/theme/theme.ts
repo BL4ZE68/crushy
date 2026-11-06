@@ -8,6 +8,7 @@ type SemanticPalette = {
   subtle: string;
   border: string;
   accent: string;
+  overlay: string;
   pink: string;
   lavender: string;
   yellow: string;
@@ -15,28 +16,30 @@ type SemanticPalette = {
 
 export const palettes: Record<ThemeName, SemanticPalette> = {
   light: {
-    background: '#FFF9FC',
-    surface: '#FFFFFF',
-    surfaceAlt: '#FFF0F7',
-    text: '#51416D',
-    subtle: '#6E617B',
-    border: '#EDE4F0',
-    accent: '#FF6FAE',
-    pink: '#FFB6D5',
-    lavender: '#C8B6FF',
-    yellow: '#FFE58F',
+    background: '#FFF8F6',
+    surface: '#FFFEFD',
+    surfaceAlt: '#FBE8E9',
+    text: '#4A2F31',
+    subtle: '#765F60',
+    border: '#EBD7D8',
+    accent: '#B53D5E',
+    overlay: '#49303399',
+    pink: '#FFC4CF',
+    lavender: '#F6D6DA',
+    yellow: '#FFE7C0',
   },
   dark: {
-    background: '#211B2C',
-    surface: '#30283D',
-    surfaceAlt: '#3B304A',
-    text: '#FFF9FC',
-    subtle: '#D5C9E0',
-    border: '#51445F',
-    accent: '#FF8ABD',
-    pink: '#FFB6D5',
-    lavender: '#51416D',
-    yellow: '#FFE58F',
+    background: '#21191C',
+    surface: '#302328',
+    surfaceAlt: '#3B292E',
+    text: '#FFF5F1',
+    subtle: '#D4BFC0',
+    border: '#554044',
+    accent: '#FF93AA',
+    overlay: '#10090CCC',
+    pink: '#74414D',
+    lavender: '#5D4147',
+    yellow: '#705A3D',
   },
 };
 

@@ -54,14 +54,12 @@ export const musicQuotes: Record<Mood, string> = {
   rêveuse: 'Certaines mélodies donnent l’impression d’ouvrir une fenêtre sur ailleurs.',
 };
 
-export function getMusicSearchUrl(title: string, artist: string, platform: 'spotify' | 'youtube'): string {
+export function getMusicSearchUrl(title: string, artist: string): string {
   const query = encodeURIComponent(`${title} ${artist}`);
-  return platform === 'spotify'
-    ? `https://open.spotify.com/search/${query}`
-    : `https://music.youtube.com/search?q=${query}`;
+  return `https://open.spotify.com/search/${query}`;
 }
 
-export function getPlaylistSearchUrl(mood: Mood, platform: 'spotify' | 'youtube'): string {
+export function getPlaylistSearchUrl(mood: Mood): string {
   const queries: Record<Mood, string> = {
     heureuse: 'feel good happy pop playlist',
     triste: 'soft comforting songs playlist',
@@ -71,7 +69,5 @@ export function getPlaylistSearchUrl(mood: Mood, platform: 'spotify' | 'youtube'
     rêveuse: 'dreamy indie atmospheric playlist',
   };
   const query = encodeURIComponent(queries[mood]);
-  return platform === 'spotify'
-    ? `https://open.spotify.com/search/${query}`
-    : `https://music.youtube.com/search?q=${query}`;
+  return `https://open.spotify.com/search/${query}/playlists`;
 }
