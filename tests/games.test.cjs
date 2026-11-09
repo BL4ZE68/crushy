@@ -9,7 +9,9 @@ const {
   isCorrectWordGuess,
   normalizeAnswer,
   personalityProfiles,
+  personalityQuestions,
   promptCategories,
+  wordRiddles,
   wouldYouRatherQuestions,
 } = require('../node_modules/.cache/crushy-tests/games/gameData.js');
 const {
@@ -35,11 +37,40 @@ test('every truth-or-dare category has truth and action prompts', () => {
   }
 });
 
+test('truth-or-dare has at least five truths and five dares per category, all unique', () => {
+  assert.equal(new Set(gamePrompts.map((prompt) => prompt.id)).size, gamePrompts.length);
+  for (const category of promptCategories) {
+    for (const kind of ['vérité', 'action']) {
+      const count = gamePrompts.filter((prompt) => prompt.category === category && prompt.kind === kind).length;
+      assert.ok(count >= 5, `${category}/${kind} should have at least 5 prompts, has ${count}`);
+    }
+  }
+});
+
+test('word-guess riddles all have a unique answer and three hints', () => {
+  assert.ok(wordRiddles.length >= 10);
+  assert.equal(new Set(wordRiddles.map((riddle) => normalizeAnswer(riddle.answer))).size, wordRiddles.length);
+  assert.ok(wordRiddles.every((riddle) => riddle.hints.length === 3));
+});
+
+test('personality quiz has enough questions with a reasonably balanced set of outcomes', () => {
+  assert.ok(personalityQuestions.length >= 8);
+  const counts = new Map();
+  for (const question of personalityQuestions) {
+    assert.equal(question.choices.length, 3);
+    assert.equal(new Set(question.choices.map((choice) => choice.type)).size, 3);
+    for (const choice of question.choices) counts.set(choice.type, (counts.get(choice.type) ?? 0) + 1);
+  }
+  for (const type of Object.keys(personalityProfiles)) {
+    assert.ok((counts.get(type) ?? 0) >= 4, `${type} should appear at least 4 times across the quiz`);
+  }
+});
+
 test('random prompt selection avoids the previous prompt when alternatives exist', () => {
   const first = getRandomPrompt('drôle', 'vérité', undefined, () => 0);
   const next = getRandomPrompt('drôle', 'vérité', first.id, () => 0);
   assert.notEqual(next.id, first.id);
-  assert.equal(getRandomPrompt('drôle', 'vérité', undefined, () => 1).id, 'fun-truth-2');
+  assert.equal(getRandomPrompt('drôle', 'vérité', undefined, () => 1).id, 'fun-truth-5');
 });
 
 test('random prompt selection includes published admin questions without repeating the previous one', () => {
@@ -70,9 +101,10 @@ test('timed challenge requires the target before the clock reaches zero', () => 
 });
 
 test('would-you-rather game has enough consecutive prompts to complete a session', () => {
-  assert.equal(wouldYouRatherQuestions.length, 6);
-  assert.equal(new Set(wouldYouRatherQuestions.map((question) => question.id)).size, 6);
+  assert.equal(wouldYouRatherQuestions.length, 16);
+  assert.equal(new Set(wouldYouRatherQuestions.map((question) => question.id)).size, 16);
   assert.ok(wouldYouRatherQuestions.every((question) => question.choices.length === 2));
+  assert.ok(wouldYouRatherQuestions.every((question) => question.reactions.length === 2));
 });
 
 test('daily content provides all requested items for each mood and stays stable for the local day', () => {

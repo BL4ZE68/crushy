@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import Animated, { FadeInUp, useReducedMotion } from 'react-native-reanimated';
 import { StyleSheet, Text, View } from 'react-native';
+import { ChunkyCard } from '../components/ChunkySurface';
 import { CrushyScreen, SectionHeading } from '../components/CrushyScreen';
 import { CrushyStateMessage } from '../components/CrushyStateMessage';
 import { Achievement, achievements } from '../rewards/achievements';
@@ -28,22 +29,26 @@ export default function RewardsScreen() {
 
   return (
     <CrushyScreen eyebrow="CHAQUE PETIT MOMENT COMPTE" title="Tes récompenses" subtitle="Des points pour célébrer tes découvertes, sans pression.">
-      <View style={[styles.levelCard, { backgroundColor: palette.lavender }]}>
-        <Text style={[styles.levelLabel, { color: palette.text }]}>NIVEAU {level}</Text>
-        <Text style={[styles.xp, { color: palette.text }]}>{xp} XP</Text>
-        <Text style={[styles.levelHint, { color: palette.text }]}>{100 - progress} XP avant le niveau {level + 1}</Text>
-        <View
-          accessibilityRole="progressbar"
-          accessibilityValue={{ min: 0, max: 100, now: progress }}
-          style={[styles.track, { backgroundColor: palette.surface }]}
-        >
-          <View style={[styles.progress, { backgroundColor: palette.accent, width: `${progress}%` }]} />
+      <ChunkyCard tint={palette.lavender} radius={designTokens.radius.xl} style={styles.levelWrap}>
+        <View style={styles.levelCard}>
+          <Text style={[styles.levelLabel, { color: palette.text }]}>NIVEAU {level}</Text>
+          <Text style={[styles.xp, { color: palette.text }]}>{xp} XP</Text>
+          <Text style={[styles.levelHint, { color: palette.text }]}>{100 - progress} XP avant le niveau {level + 1}</Text>
+          <View
+            accessibilityRole="progressbar"
+            accessibilityValue={{ min: 0, max: 100, now: progress }}
+            style={[styles.track, { backgroundColor: palette.surface, borderColor: palette.ink }]}
+          >
+            <View style={[styles.progress, { backgroundColor: palette.accent, width: `${progress}%` }]} />
+          </View>
         </View>
-      </View>
+      </ChunkyCard>
+
       <View style={styles.stats}>
         <Stat value={`${completedGames}`} label="Jeux terminés" />
         <Stat value={`${openedCount}`} label="Surprises lues" />
       </View>
+
       <SectionHeading>Badges & succès</SectionHeading>
       {achievements.map((achievement, index) => {
         const unlocked = unlockedIds.includes(achievement.id);
@@ -59,6 +64,7 @@ export default function RewardsScreen() {
           />
         );
       })}
+
       <SectionHeading>Ton historique</SectionHeading>
       {activities.length ? (
         activities.slice(0, 20).map((activity) => (
@@ -88,18 +94,27 @@ function AchievementCard({
   return (
     <Animated.View
       entering={unlocked && !reduceMotion ? FadeInUp.duration(220).delay(Math.min(index * 45, 180)) : undefined}
-      style={[styles.badge, { backgroundColor: palette.surface, borderColor: unlocked ? palette.pink : palette.border }]}
     >
-      <View style={[styles.badgeSeal, { backgroundColor: unlocked ? palette.pink : palette.surfaceAlt }]}>
-        <Ionicons name={hidden ? 'lock-closed' : unlocked ? 'ribbon' : 'sparkles'} size={19} color={unlocked ? palette.text : palette.accent} />
-      </View>
-      <View style={styles.badgeCopy}>
-        <Text style={[styles.badgeTitle, { color: palette.text }]}>{hidden ? '???' : achievement.title}</Text>
-        <Text style={[styles.badgeDetail, { color: palette.subtle }]}>
-          {hidden ? 'Une récompense secrète se cache dans les mini-jeux.' : achievement.description}
-        </Text>
-      </View>
-      <Text style={[styles.badgeStatus, { color: unlocked ? palette.accent : palette.subtle }]}>{unlocked ? 'Obtenu' : 'À venir'}</Text>
+      <ChunkyCard
+        tint={unlocked ? palette.surface : palette.background}
+        radius={designTokens.radius.lg}
+        depth={unlocked ? designTokens.chunky.depth : 0}
+        outlineWidth={unlocked ? designTokens.chunky.outline : 1.5}
+        style={styles.badgeWrap}
+      >
+        <View style={styles.badge}>
+          <View style={[styles.badgeSeal, { backgroundColor: unlocked ? palette.pink : palette.surfaceAlt, borderColor: palette.ink, borderWidth: unlocked ? 2 : 0 }]}>
+            <Ionicons name={hidden ? 'lock-closed' : unlocked ? 'ribbon' : 'sparkles'} size={19} color={unlocked ? palette.text : palette.accent} />
+          </View>
+          <View style={styles.badgeCopy}>
+            <Text style={[styles.badgeTitle, { color: palette.text }]}>{hidden ? '???' : achievement.title}</Text>
+            <Text style={[styles.badgeDetail, { color: palette.subtle }]}>
+              {hidden ? 'Une récompense secrète se cache dans les mini-jeux.' : achievement.description}
+            </Text>
+          </View>
+          <Text style={[styles.badgeStatus, { color: unlocked ? palette.accent : palette.subtle }]}>{unlocked ? 'Obtenu' : 'À venir'}</Text>
+        </View>
+      </ChunkyCard>
     </Animated.View>
   );
 }
@@ -131,25 +146,30 @@ function ActivityRow({ activity }: { activity: UserActivity }) {
 function Stat({ value, label }: { value: string; label: string }) {
   const { palette } = useCrushyTheme();
   return (
-    <View style={[styles.stat, { backgroundColor: palette.surface, borderColor: palette.border }]}>
-      <Text style={[styles.statValue, { color: palette.text }]}>{value}</Text>
-      <Text style={[styles.statLabel, { color: palette.subtle }]}>{label}</Text>
-    </View>
+    <ChunkyCard radius={designTokens.radius.lg} depth={3} style={styles.statWrap}>
+      <View style={styles.stat}>
+        <Text style={[styles.statValue, { color: palette.text }]}>{value}</Text>
+        <Text style={[styles.statLabel, { color: palette.subtle }]}>{label}</Text>
+      </View>
+    </ChunkyCard>
   );
 }
 
 const styles = StyleSheet.create({
-  levelCard: { borderRadius: designTokens.radius.xl, padding: 20, marginTop: 18 },
+  levelWrap: { marginTop: 18 },
+  levelCard: { padding: 20 },
   levelLabel: { fontSize: 11, letterSpacing: 1.2, fontFamily: designTokens.typography.bold },
   xp: { fontSize: 34, fontFamily: designTokens.typography.extraBold, marginTop: 5 },
   levelHint: { fontSize: 12, marginTop: 2, opacity: 0.8 },
-  track: { height: 8, borderRadius: 4, marginTop: 17, overflow: 'hidden' },
-  progress: { height: 8, borderRadius: 4 },
-  stats: { flexDirection: 'row', gap: 9, marginTop: 12 },
-  stat: { flex: 1, alignItems: 'center', borderWidth: 1, borderRadius: 17, paddingVertical: 13 },
+  track: { height: 10, borderRadius: 5, marginTop: 17, overflow: 'hidden', borderWidth: 1.5 },
+  progress: { height: '100%', borderRadius: 5 },
+  stats: { flexDirection: 'row', gap: 10, marginTop: 14 },
+  statWrap: { flex: 1 },
+  stat: { alignItems: 'center', paddingVertical: 13 },
   statValue: { fontSize: 19, fontFamily: designTokens.typography.extraBold },
   statLabel: { fontSize: 10, marginTop: 2 },
-  badge: { flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderRadius: designTokens.radius.lg, padding: 12, marginBottom: 9 },
+  badgeWrap: { marginBottom: 11 },
+  badge: { flexDirection: 'row', alignItems: 'center', padding: 12 },
   badgeSeal: { width: 40, height: 40, borderRadius: 15, alignItems: 'center', justifyContent: 'center' },
   badgeCopy: { flex: 1, marginLeft: 10 },
   badgeTitle: { fontSize: 13, fontFamily: designTokens.typography.bold },

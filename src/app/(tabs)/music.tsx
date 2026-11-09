@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Alert, Linking, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { ChunkyCard } from '../../components/ChunkySurface';
 import { CrushyScreen, SectionHeading } from '../../components/CrushyScreen';
 import { CrushyStateMessage } from '../../components/CrushyStateMessage';
 import { designTokens } from '../../theme/theme';
@@ -37,7 +38,7 @@ async function openExternalLink(url: string) {
 }
 
 export default function MusicScreen() {
-  const { palette } = useCrushyTheme();
+  const { palette, isDark } = useCrushyTheme();
   const savedMood = useCrushyStore((state) => state.mood);
   const setSavedMood = useCrushyStore((state) => state.setMood);
   const [selected, setSelected] = useState<Mood>(savedMood ?? 'rêveuse');
@@ -104,7 +105,10 @@ export default function MusicScreen() {
               accessibilityState={{ selected: active }}
               key={mood}
               onPress={() => chooseMood(mood)}
-              style={[styles.moodChip, { backgroundColor: active ? palette.text : palette.surfaceAlt }]}
+              style={[
+                styles.moodChip,
+                { backgroundColor: active ? palette.text : palette.surfaceAlt, borderColor: active ? palette.text : palette.ink },
+              ]}
             >
               <Text style={[styles.moodText, { color: active ? palette.background : palette.text }]}>{moodLabels[mood]}</Text>
             </Pressable>
@@ -112,10 +116,12 @@ export default function MusicScreen() {
         })}
       </View>
 
-      <View style={[styles.quoteCard, { backgroundColor: palette.lavender }]}>
-        <Text style={[styles.quoteLabel, { color: palette.text }]}>PETITE CITATION MUSICALE</Text>
-        <Text style={[styles.quote, { color: palette.text }]}>{musicQuotes[selected]}</Text>
-      </View>
+      <ChunkyCard tint={palette.lavender} radius={designTokens.radius.lg} style={styles.quoteWrap}>
+        <View style={styles.quoteCard}>
+          <Text style={[styles.quoteLabel, { color: palette.text }]}>PETITE CITATION MUSICALE</Text>
+          <Text style={[styles.quote, { color: palette.text }]}>{musicQuotes[selected]}</Text>
+        </View>
+      </ChunkyCard>
 
       <SectionHeading>Quelques chansons pour toi</SectionHeading>
       {contentError ? <CrushyStateMessage message={contentError} title="Suggestions indisponibles" tone="warning" /> : null}
@@ -129,7 +135,10 @@ export default function MusicScreen() {
               accessibilityState={{ selected: active }}
               key={item}
               onPress={() => setGenre(item)}
-              style={[styles.genreChip, { backgroundColor: active ? palette.pink : palette.surfaceAlt }]}
+              style={[
+                styles.genreChip,
+                { backgroundColor: active ? palette.pink : palette.surfaceAlt, borderColor: palette.ink },
+              ]}
             >
               <Text style={[styles.genreText, { color: palette.text }]}>{item}</Text>
             </Pressable>
@@ -141,7 +150,10 @@ export default function MusicScreen() {
           accessibilityRole="link"
           key={`${track.artist}-${track.title}`}
           onPress={() => void openExternalLink(track.platformUrl ?? getMusicSearchUrl(track.title, track.artist))}
-          style={({ pressed }) => [styles.track, { backgroundColor: palette.surface, borderColor: palette.border, opacity: pressed ? 0.82 : 1 }]}
+          style={({ pressed }) => [
+            styles.track,
+            { backgroundColor: palette.surface, borderColor: palette.ink, opacity: pressed ? 0.82 : 1 },
+          ]}
         >
           <View style={[styles.trackIcon, { backgroundColor: palette.surfaceAlt }]}>
             <Ionicons name="musical-note" size={19} color={palette.accent} />
@@ -157,18 +169,28 @@ export default function MusicScreen() {
       )}
 
       <SectionHeading>Ta playlist Spotify</SectionHeading>
-      <Pressable
-        accessibilityRole="link"
-        onPress={() => void openExternalLink(getPlaylistSearchUrl(selected))}
-        style={({ pressed }) => [styles.playlist, { backgroundColor: palette.pink, opacity: pressed ? 0.82 : 1 }]}
-      >
-        <View style={styles.playlistCopy}>
-          <Text style={[styles.playlistEyebrow, { color: palette.text }]}>PLAYLIST SPOTIFY</Text>
-          <Text style={[styles.playlistTitle, { color: palette.text }]}>{moodLabels[selected]} · pour ton humeur</Text>
-          <Text style={[styles.playlistSubtitle, { color: palette.text }]}>Trouver une playlist sur Spotify</Text>
-        </View>
-        <Ionicons name="open-outline" size={21} color={palette.text} />
-      </Pressable>
+      <View style={styles.playlistWrap}>
+        {!isDark ? <View style={[styles.playlistShadow, { backgroundColor: palette.shadow }]} /> : null}
+        <Pressable
+          accessibilityRole="link"
+          onPress={() => void openExternalLink(getPlaylistSearchUrl(selected))}
+          style={({ pressed }) => [
+            styles.playlist,
+            {
+              backgroundColor: palette.pink,
+              borderColor: palette.ink,
+              transform: !isDark ? [{ translateY: pressed ? designTokens.chunky.depth : 0 }] : undefined,
+            },
+          ]}
+        >
+          <View style={styles.playlistCopy}>
+            <Text style={[styles.playlistEyebrow, { color: palette.text }]}>PLAYLIST SPOTIFY</Text>
+            <Text style={[styles.playlistTitle, { color: palette.text }]}>{moodLabels[selected]} · pour ton humeur</Text>
+            <Text style={[styles.playlistSubtitle, { color: palette.text }]}>Trouver une playlist sur Spotify</Text>
+          </View>
+          <Ionicons name="open-outline" size={21} color={palette.text} />
+        </Pressable>
+      </View>
       <Text style={[styles.disclaimer, { color: palette.subtle }]}>
         CRUSHY ne lit ni ne stocke de morceaux. Les titres et playlists s’ouvrent dans Spotify ; disponibilité selon ton compte et ta région.
       </Text>
@@ -178,20 +200,30 @@ export default function MusicScreen() {
 
 const styles = StyleSheet.create({
   moods: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  moodChip: { borderRadius: designTokens.radius.pill, paddingVertical: 9, paddingHorizontal: 13 },
+  moodChip: { borderRadius: designTokens.radius.pill, paddingVertical: 9, paddingHorizontal: 13, borderWidth: 2 },
   moodText: { fontSize: 12, fontFamily: designTokens.typography.bold },
-  quoteCard: { borderRadius: designTokens.radius.lg, padding: 17, marginTop: 16 },
+  quoteWrap: { marginTop: 16 },
+  quoteCard: { padding: 17 },
   quoteLabel: { fontSize: 10, letterSpacing: 1.1, fontFamily: designTokens.typography.bold },
   quote: { fontSize: 15, lineHeight: 22, fontFamily: designTokens.typography.bold, marginTop: 8 },
   genreFilters: { flexDirection: 'row', flexWrap: 'wrap', gap: 7, marginBottom: 8 },
-  genreChip: { paddingVertical: 7, paddingHorizontal: 11, borderRadius: designTokens.radius.pill },
+  genreChip: { paddingVertical: 7, paddingHorizontal: 11, borderRadius: designTokens.radius.pill, borderWidth: 2 },
   genreText: { fontSize: 11, fontFamily: designTokens.typography.bold },
-  track: { borderWidth: 1, borderRadius: designTokens.radius.md, minHeight: 68, flexDirection: 'row', alignItems: 'center', padding: 11, marginBottom: 8 },
+  track: { borderWidth: 2, borderRadius: designTokens.radius.md, minHeight: 68, flexDirection: 'row', alignItems: 'center', padding: 11, marginBottom: 8 },
   trackIcon: { width: 40, height: 40, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
   trackCopy: { flex: 1, marginLeft: 11 },
   trackTitle: { fontSize: 14, fontFamily: designTokens.typography.bold },
   trackArtist: { fontSize: 11, marginTop: 3 },
-  playlist: { borderRadius: designTokens.radius.lg, minHeight: 100, padding: 16, flexDirection: 'row', alignItems: 'center', marginTop: 11 },
+  playlistWrap: { marginTop: 11 },
+  playlistShadow: {
+    position: 'absolute',
+    top: designTokens.chunky.depth,
+    left: 0,
+    right: 0,
+    bottom: -designTokens.chunky.depth,
+    borderRadius: designTokens.radius.lg,
+  },
+  playlist: { borderWidth: 2.5, borderRadius: designTokens.radius.lg, minHeight: 100, padding: 16, flexDirection: 'row', alignItems: 'center' },
   playlistCopy: { flex: 1, paddingRight: 8 },
   playlistEyebrow: { fontSize: 9, letterSpacing: 1.1, fontFamily: designTokens.typography.bold },
   playlistTitle: { fontSize: 16, fontFamily: designTokens.typography.extraBold, marginTop: 5 },

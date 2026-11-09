@@ -1,15 +1,14 @@
-import Ionicons from '@expo/vector-icons/Ionicons';
 import { Tabs } from 'expo-router';
+import { Text } from 'react-native';
 import { useReducedMotion } from 'react-native-reanimated';
 import { designTokens } from '../../theme/theme';
 import { useCrushyTheme } from '../../theme/useCrushyTheme';
 
 const tabIcons = {
-  index: ['home', 'home-outline'],
-  games: ['game-controller', 'game-controller-outline'],
-  surprises: ['gift', 'gift-outline'],
-  music: ['musical-notes', 'musical-notes-outline'],
-  profile: ['person-circle', 'person-circle-outline'],
+  index: '🏠',
+  games: '🎲',
+  surprises: '🎁',
+  profile: '👤',
 } as const;
 
 export default function TabsLayout() {
@@ -19,7 +18,7 @@ export default function TabsLayout() {
   return (
     <Tabs
       screenOptions={({ route }) => {
-        const [active, inactive] = tabIcons[route.name as keyof typeof tabIcons] ?? ['ellipse', 'ellipse-outline'];
+        const icon = tabIcons[route.name as keyof typeof tabIcons] ?? '•';
         return {
           headerShown: false,
           tabBarActiveTintColor: palette.accent,
@@ -27,18 +26,12 @@ export default function TabsLayout() {
           tabBarStyle: {
             backgroundColor: palette.surface,
             borderTopColor: palette.border,
-            height: 64,
-            paddingTop: 6,
-            paddingBottom: 7,
+            height: 58,
+            paddingTop: 4,
+            paddingBottom: 4,
           },
           tabBarLabelStyle: { fontSize: 10, fontFamily: designTokens.typography.bold },
-          tabBarIcon: ({ focused, size }) => (
-            <Ionicons
-              name={(focused ? active : inactive) as keyof typeof Ionicons.glyphMap}
-              size={size}
-              color={focused ? palette.accent : palette.subtle}
-            />
-          ),
+          tabBarIcon: () => <Text style={{ fontSize: 19 }}>{icon}</Text>,
           animation: reduceMotion ? 'none' : 'fade',
         };
       }}
@@ -46,7 +39,7 @@ export default function TabsLayout() {
       <Tabs.Screen name="index" options={{ title: 'Accueil' }} />
       <Tabs.Screen name="games" options={{ title: 'Jeux' }} />
       <Tabs.Screen name="surprises" options={{ title: 'Surprises' }} />
-      <Tabs.Screen name="music" options={{ title: 'Musique' }} />
+      <Tabs.Screen name="music" options={{ href: null }} />
       <Tabs.Screen name="profile" options={{ title: 'Profil' }} />
     </Tabs>
   );

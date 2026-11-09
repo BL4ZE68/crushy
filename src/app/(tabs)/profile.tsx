@@ -5,6 +5,7 @@ import { Controller, useForm } from 'react-hook-form';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { z } from 'zod';
 import { CrushyButton } from '../../components/CrushyButton';
+import { CrushyMascot } from '../../components/CrushyMascot';
 import { CrushyScreen, SectionHeading } from '../../components/CrushyScreen';
 import { AvatarId, useCrushyStore } from '../../store/useCrushyStore';
 import { designTokens } from '../../theme/theme';
@@ -45,9 +46,10 @@ export default function ProfileScreen() {
 
   return (
     <CrushyScreen eyebrow="TON PETIT ESPACE PERSO" title="Mon profil" subtitle="Un espace à ton image, gardé sur ton appareil.">
-      <View style={[styles.profileCard, { backgroundColor: palette.pink }]}>
-        <View style={[styles.avatar, { backgroundColor: palette.surface }]}>
-          <Ionicons name={selectedAvatar.icon} size={29} color={palette.accent} />
+      <View style={[styles.profileCard, { backgroundColor: palette.pink, borderColor: palette.ink }]}>
+        <CrushyMascot expression={mood ?? 'neutre'} size={92} interactive={false} />
+        <View style={[styles.avatarBadge, { backgroundColor: palette.surface, borderColor: palette.ink }]}>
+          <Ionicons name={selectedAvatar.icon} size={16} color={palette.accent} />
         </View>
         <Text style={[styles.nickname, { color: palette.text }]}>{nickname}</Text>
         <Text style={[styles.mood, { color: palette.text }]}>{mood ? `Humeur : ${mood}` : 'Humeur à choisir'}</Text>
@@ -104,6 +106,7 @@ export default function ProfileScreen() {
         {unlockedAchievements.length} badges obtenus · {openedSurprises} surprises découvertes.
       </Text>
       <CrushyButton secondary onPress={() => router.push('/rewards')}>Voir mes badges et mon historique</CrushyButton>
+      <CrushyButton secondary onPress={() => router.push('/music')}>Découvrir les musiques</CrushyButton>
       <CrushyButton secondary onPress={() => router.push('/settings')}>Préférences et notifications</CrushyButton>
     </CrushyScreen>
   );
@@ -120,9 +123,23 @@ function Stat({ label, value }: { label: string; value: string }) {
 }
 
 const styles = StyleSheet.create({
-  profileCard: { alignItems: 'center', borderRadius: designTokens.radius.xl, paddingVertical: 22, marginTop: 16 },
-  avatar: { width: 72, height: 72, borderRadius: 26, alignItems: 'center', justifyContent: 'center' },
-  nickname: { fontSize: 21, fontFamily: designTokens.typography.extraBold, marginTop: 11 },
+  profileCard: {
+    alignItems: 'center',
+    borderRadius: designTokens.radius.xl,
+    paddingVertical: 22,
+    marginTop: 16,
+    borderWidth: designTokens.chunky.outline,
+  },
+  avatarBadge: {
+    width: 34,
+    height: 34,
+    borderRadius: 14,
+    borderWidth: 2,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: -14,
+  },
+  nickname: { fontSize: 21, fontFamily: designTokens.typography.extraBold, marginTop: 9 },
   mood: { fontSize: 13, marginTop: 3, textTransform: 'capitalize' },
   avatars: { flexDirection: 'row', gap: 9, marginTop: 14 },
   avatarOption: { width: 36, height: 36, borderRadius: 13, alignItems: 'center', justifyContent: 'center' },
