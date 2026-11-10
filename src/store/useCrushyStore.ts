@@ -5,7 +5,7 @@ import { getNewAchievements } from '../rewards/achievements';
 
 export type ThemeMode = 'system' | 'light' | 'dark';
 export type Mood = 'heureuse' | 'triste' | 'amoureuse' | 'énergique' | 'fatiguée' | 'rêveuse';
-export type AvatarId = 'heart' | 'sparkles' | 'sunny' | 'moon';
+export type AvatarId = 'heart' | 'sparkles' | 'sunny' | 'moon' | 'flame' | 'planet' | 'flower' | 'paw';
 export type ActivityKind = 'game' | 'surprise' | 'achievement' | 'mood' | 'schedule' | 'challenge' | 'daily';
 
 export type UserActivity = {
@@ -29,6 +29,7 @@ type CrushyState = {
   themeMode: ThemeMode;
   mood: Mood | null;
   soundsEnabled: boolean;
+  hapticsEnabled: boolean;
   notificationsEnabled: boolean;
   xp: number;
   gameCompletions: Record<string, number>;
@@ -44,7 +45,9 @@ type CrushyState = {
   setThemeMode: (themeMode: ThemeMode) => void;
   setMood: (mood: Mood) => void;
   setSoundsEnabled: (enabled: boolean) => void;
+  setHapticsEnabled: (enabled: boolean) => void;
   setNotificationsEnabled: (enabled: boolean) => void;
+  resetProgress: () => void;
   addXp: (amount: number, title?: string) => void;
   completeGame: (gameId: string, xp: number) => void;
   openSurprise: (surpriseId: string) => void;
@@ -81,6 +84,7 @@ export const useCrushyStore = create<CrushyState>()(
       themeMode: 'system',
       mood: null,
       soundsEnabled: false,
+      hapticsEnabled: true,
       notificationsEnabled: false,
       xp: 0,
       gameCompletions: {},
@@ -95,6 +99,7 @@ export const useCrushyStore = create<CrushyState>()(
       setAvatarId: (avatarId) => set({ avatarId }),
       setThemeMode: (themeMode) => set({ themeMode }),
       setSoundsEnabled: (soundsEnabled) => set({ soundsEnabled }),
+      setHapticsEnabled: (hapticsEnabled) => set({ hapticsEnabled }),
       setMood: (mood) =>
         set((state) => state.mood === mood
           ? state
@@ -103,6 +108,16 @@ export const useCrushyStore = create<CrushyState>()(
               activities: addActivity(state.activities, 'mood', `Humeur : ${mood}`),
             }),
       setNotificationsEnabled: (notificationsEnabled) => set({ notificationsEnabled }),
+      resetProgress: () =>
+        set((state) => ({
+          xp: 0,
+          gameCompletions: {},
+          openedSurpriseIds: [],
+          scheduledSurprises: {},
+          unlockedAchievements: [],
+          activities: addActivity([], 'challenge', 'Progression réinitialisée'),
+          completedDailyChallenges: [],
+        })),
       addXp: (amount, title = 'Petit défi réussi') =>
         set((state) => ({
           xp: state.xp + amount,
@@ -197,6 +212,7 @@ export const useCrushyStore = create<CrushyState>()(
         themeMode: state.themeMode,
         mood: state.mood,
         soundsEnabled: state.soundsEnabled,
+        hapticsEnabled: state.hapticsEnabled,
         notificationsEnabled: state.notificationsEnabled,
         xp: state.xp,
         gameCompletions: state.gameCompletions,

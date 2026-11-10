@@ -9,9 +9,12 @@ import {
   Pressable,
   StyleSheet,
   Text,
+  Vibration,
   View,
 } from 'react-native';
+import { ChunkyCard } from '../../components/ChunkySurface';
 import { CrushyButton } from '../../components/CrushyButton';
+import { CrushyMascot } from '../../components/CrushyMascot';
 import { CrushyScreen, SectionHeading } from '../../components/CrushyScreen';
 import { CrushyStateMessage } from '../../components/CrushyStateMessage';
 import {
@@ -131,6 +134,8 @@ export default function SurprisesScreen() {
   const scheduleSurprise = useCrushyStore((state) => state.scheduleSurprise);
   const cancelSchedule = useCrushyStore((state) => state.cancelSurpriseSchedule);
   const notificationsEnabled = useCrushyStore((state) => state.notificationsEnabled);
+  const hapticsEnabled = useCrushyStore((state) => state.hapticsEnabled);
+
   const [now, setNow] = useState(() => new Date());
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [selectedEarnedXp, setSelectedEarnedXp] = useState(false);
@@ -141,6 +146,16 @@ export default function SurprisesScreen() {
   const [publishedSurprises, setPublishedSurprises] = useState<ManagedSurprise[]>([]);
   const [contentError, setContentError] = useState('');
   const [loadingSurprises, setLoadingSurprises] = useState(true);
+
+  function triggerHaptic(duration = 20) {
+    if (hapticsEnabled) {
+      try {
+        Vibration.vibrate(duration);
+      } catch {
+        // Ignoré
+      }
+    }
+  }
 
   useEffect(() => {
     const timer = setInterval(() => setNow(new Date()), 30_000);
@@ -167,31 +182,40 @@ export default function SurprisesScreen() {
     };
   }, []);
 
-  const surpriseItems = useMemo<Surprise[]>(() => [
-    ...publishedSurprises.map((surprise) => ({
-      id: surprise.id,
-      title: surprise.title,
-      message: surprise.body,
-      kind: surprise.kind,
-      requiredXp: surprise.unlock_xp,
-      releaseAt: surprise.scheduled_at ? new Date(surprise.scheduled_at) : undefined,
-    })),
-    ...surprises,
-  ], [publishedSurprises]);
+  const surpriseItems = useMemo<Surprise[]>(
+    () => [
+      ...publishedSurprises.map((surprise) => ({
+        id: surprise.id,
+        title: surprise.title,
+        message: surprise.body,
+        kind: surprise.kind,
+        requiredXp: surprise.unlock_xp,
+        releaseAt: surprise.scheduled_at ? new Date(surprise.scheduled_at) : undefined,
+      })),
+      ...surprises,
+    ],
+    [publishedSurprises],
+  );
+
   const selected = surpriseItems.find((surprise) => surprise.id === selectedId) ?? null;
   const scheduleTarget = surpriseItems.find((surprise) => surprise.id === scheduleTargetId) ?? null;
-  const sortedSurprises = useMemo(() => [...surpriseItems].sort((a, b) => {
-    const scheduledA = scheduledSurprises[a.id]?.scheduledAt;
-    const scheduledB = scheduledSurprises[b.id]?.scheduledAt;
-    const statusA = getSurpriseStatus(a, openedIds, xp, scheduledA ? new Date(scheduledA) : null, now);
-    const statusB = getSurpriseStatus(b, openedIds, xp, scheduledB ? new Date(scheduledB) : null, now);
-    const order: Record<SurpriseStatus, number> = { unread: 0, scheduled: 1, locked: 2, read: 3 };
-    return order[statusA] - order[statusB];
-  }), [openedIds, now, scheduledSurprises, surpriseItems, xp]);
+
+  const sortedSurprises = useMemo(() => {
+    return [...surpriseItems].sort((a, b) => {
+      const scheduledA = scheduledSurprises[a.id]?.scheduledAt;
+      const scheduledB = scheduledSurprises[b.id]?.scheduledAt;
+      const statusA = getSurpriseStatus(a, openedIds, xp, scheduledA ? new Date(scheduledA) : null, now);
+      const statusB = getSurpriseStatus(b, openedIds, xp, scheduledB ? new Date(scheduledB) : null, now);
+      const order: Record<SurpriseStatus, number> = { unread: 0, scheduled: 1, locked: 2, read: 3 };
+      return order[statusA] - order[statusB];
+    });
+  }, [openedIds, now, scheduledSurprises, surpriseItems, xp]);
 
   function openCard(surprise: Surprise, status: SurpriseStatus) {
     if (status === 'locked' || status === 'scheduled') return;
-    setSelectedEarnedXp(!openedIds.includes(surprise.id));
+    triggerHaptic(30);
+    const isNew = !openedIds.includes(surprise.id);
+    setSelectedEarnedXp(isNew);
     openSurprise(surprise.id);
     setSelectedId(surprise.id);
   }
@@ -199,17 +223,21 @@ export default function SurprisesScreen() {
   async function saveSchedule() {
     if (!scheduleTarget) return;
     if (draftDate.getTime() <= Date.now()) {
-      Alert.alert('Choisis une heure future', 'La surprise doit être programmée à une date et une heure qui ne sont pas encore passées.');
+      Alert.alert(
+        'Choisis une heure future',
+        'La surprise doit être programmée à une date et une heure futures.',
+      );
       return;
     }
 
     setBusy(true);
+    triggerHaptic();
     try {
       let notificationId: string | undefined;
       if (notificationsEnabled) {
         notificationId = await scheduleSurpriseNotification(
-          'Une petite surprise t’attend',
-          'CRUSHY a gardé une enveloppe pour toi.',
+          'Une petite surprise t’attend 💌',
+          'CRUSHY a gardé une enveloppe toute douce pour toi.',
           draftDate,
         );
       }
@@ -221,13 +249,17 @@ export default function SurprisesScreen() {
       scheduleSurprise(scheduleTarget.id, draftDate.toISOString(), notificationId);
       setScheduleTargetId(null);
     } catch {
-      Alert.alert('Programmation impossible', 'La surprise n’a pas pu être programmée. Vérifie les réglages de notification et réessaie.');
+      Alert.alert(
+        'Programmation impossible',
+        'La surprise n’a pas pu être programmée. Vérifie les réglages de notification et réessaie.',
+      );
     } finally {
       setBusy(false);
     }
   }
 
   async function removeSchedule(surpriseId: string) {
+    triggerHaptic();
     const notificationId = scheduledSurprises[surpriseId]?.notificationId;
     try {
       if (notificationId) await cancelSurpriseNotification(notificationId);
@@ -249,108 +281,222 @@ export default function SurprisesScreen() {
   }
 
   return (
-    <CrushyScreen eyebrow="ENVELOPPE RIEN QUE POUR TOI" title="Boîte à surprises" subtitle="Des mots doux, secrets ou rigolos, à ouvrir quand tu en as envie.">
-      <View style={[styles.summary, { backgroundColor: palette.surfaceAlt }]}>
-        <Text style={[styles.summaryText, { color: palette.text }]}>{openedIds.length} surprises découvertes · chaque enveloppe garde son petit secret.</Text>
-      </View>
-      {contentError ? <CrushyStateMessage message={contentError} title="Enveloppes locales disponibles" tone="warning" /> : null}
-      {loadingSurprises ? <CrushyStateMessage message="On regarde s’il y a de nouveaux petits mots." title="Un instant" tone="loading" /> : null}
-      <SectionHeading>Tes enveloppes</SectionHeading>
-      {sortedSurprises.map((surprise, index) => {
-        const savedDate = scheduledSurprises[surprise.id]?.scheduledAt;
-        const scheduledAt = savedDate ? new Date(savedDate) : null;
-        const status = getSurpriseStatus(surprise, openedIds, xp, scheduledAt, now);
-        const locked = status === 'locked';
-        const scheduled = status === 'scheduled';
-        const read = status === 'read';
-        const tint = index % 3 === 1 ? palette.lavender : index % 3 === 2 ? palette.yellow : palette.pink;
-
-        return (
-          <View key={surprise.id} style={[styles.envelope, { backgroundColor: palette.surface, borderColor: palette.border }]}>
-            <Pressable
-              accessibilityRole="button"
-              accessibilityState={{ disabled: locked || scheduled }}
-              disabled={locked || scheduled}
-              onPress={() => openCard(surprise, status)}
-              style={({ pressed }) => [styles.envelopeBody, { opacity: pressed ? 0.82 : 1 }]}
-            >
-              <View style={[styles.seal, { backgroundColor: tint }]}>
-                <Ionicons
-                  name={locked ? 'lock-closed' : scheduled ? 'time' : read ? 'mail-open' : 'mail'}
-                  size={20}
-                  color={palette.text}
-                />
-              </View>
-              <View style={styles.envelopeText}>
-                <Text style={[styles.envelopeTitle, { color: palette.text }]}>
-                  {locked || scheduled ? 'Une enveloppe pour toi' : surprise.title}
-                </Text>
-                <Text style={[styles.envelopeHint, { color: palette.subtle }]}>
-                  {locked
-                    ? `À débloquer à ${surprise.requiredXp} XP`
-                    : scheduled
-                      ? `Programmée · ${formatDate(scheduledAt ?? surprise.releaseAt ?? now)}`
-                      : `${kindLabels[surprise.kind]} · ${read ? 'Déjà lue, touche pour relire' : 'À découvrir'}`}
-                </Text>
-              </View>
-              <Text style={[styles.stateLabel, { color: locked ? palette.subtle : read ? palette.subtle : palette.accent }]}>
-                {locked ? 'Verrouillée' : scheduled ? 'Programmée' : read ? 'Lue' : 'Non lue'}
-              </Text>
-            </Pressable>
-            {scheduledAt && scheduled ? (
-              <Pressable accessibilityRole="button" onPress={() => void removeSchedule(surprise.id)} style={styles.cancelSchedule}>
-                <Text style={[styles.cancelScheduleText, { color: palette.accent }]}>Annuler la programmation</Text>
-              </Pressable>
-            ) : !locked && !read && !scheduled && !surprise.releaseAt ? (
-              <Pressable
-                accessibilityRole="button"
-                onPress={() => {
-                  setDraftDate(new Date(Date.now() + 60 * 60 * 1000));
-                  setScheduleTargetId(surprise.id);
-                }}
-                style={styles.scheduleButton}
-              >
-                <Text style={[styles.scheduleText, { color: palette.accent }]}>Programmer</Text>
-              </Pressable>
-            ) : null}
+    <CrushyScreen
+      eyebrow="ENVELOPPE RIEN QUE POUR TOI"
+      title="Boîte à surprises"
+      subtitle="Des mots doux, des secrets et des attentions à ouvrir quand tu en as envie."
+    >
+      {/* Résumé de collection en ChunkyCard */}
+      <ChunkyCard tint={palette.pink} radius={designTokens.radius.lg} depth={3} style={styles.summaryWrap}>
+        <View style={styles.summaryCard}>
+          <Text style={styles.summaryIcon}>💌</Text>
+          <View style={styles.summaryCopy}>
+            <Text style={[styles.summaryTitle, { color: palette.text }]}>
+              {openedIds.length} sur {surpriseItems.length} surprises découvertes
+            </Text>
+            <Text style={[styles.summarySubtitle, { color: palette.text }]}>
+              Chaque enveloppe garde un petit secret réconfortant.
+            </Text>
           </View>
-        );
-      })}
+        </View>
+      </ChunkyCard>
 
-      <Modal animationType="fade" onRequestClose={() => setSelectedId(null)} transparent visible={Boolean(selected)}>
+      {contentError ? (
+        <CrushyStateMessage message={contentError} title="Enveloppes locales disponibles" tone="warning" />
+      ) : null}
+      {loadingSurprises ? (
+        <CrushyStateMessage message="On regarde s’il y a de nouveaux petits mots." title="Un instant" tone="loading" />
+      ) : null}
+
+      <SectionHeading>Tes enveloppes</SectionHeading>
+      <View style={styles.envelopeList}>
+        {sortedSurprises.map((surprise, index) => {
+          const savedDate = scheduledSurprises[surprise.id]?.scheduledAt;
+          const scheduledAt = savedDate ? new Date(savedDate) : null;
+          const status = getSurpriseStatus(surprise, openedIds, xp, scheduledAt, now);
+          const locked = status === 'locked';
+          const scheduled = status === 'scheduled';
+          const read = status === 'read';
+
+          const sealTint =
+            index % 4 === 0
+              ? palette.pink
+              : index % 4 === 1
+              ? palette.lavender
+              : index % 4 === 2
+              ? palette.yellow
+              : palette.mint;
+
+          return (
+            <ChunkyCard
+              depth={locked ? 0 : 3}
+              key={surprise.id}
+              outlineWidth={locked ? 1 : 2}
+              radius={designTokens.radius.lg}
+              style={styles.envelopeCardWrap}
+              tint={read ? palette.surfaceAlt : palette.surface}
+            >
+              <View style={styles.envelopeInner}>
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityState={{ disabled: locked || scheduled }}
+                  disabled={locked || scheduled}
+                  onPress={() => openCard(surprise, status)}
+                  style={({ pressed }) => [
+                    styles.envelopeBody,
+                    { opacity: pressed && !locked ? 0.8 : 1 },
+                  ]}
+                >
+                  <View style={[styles.seal, { backgroundColor: locked ? palette.border : sealTint, borderColor: palette.ink }]}>
+                    <Ionicons
+                      color={palette.ink}
+                      name={locked ? 'lock-closed' : scheduled ? 'time' : read ? 'mail-open' : 'mail'}
+                      size={20}
+                    />
+                  </View>
+                  <View style={styles.envelopeText}>
+                    <Text style={[styles.envelopeTitle, { color: palette.text }]}>
+                      {locked || scheduled ? 'Une enveloppe pour toi' : surprise.title}
+                    </Text>
+                    <Text style={[styles.envelopeHint, { color: palette.subtle }]}>
+                      {locked
+                        ? `À débloquer dès ${surprise.requiredXp} XP (actuel : ${xp} XP)`
+                        : scheduled
+                        ? `Programmée · ${formatDate(scheduledAt ?? surprise.releaseAt ?? now)}`
+                        : `${kindLabels[surprise.kind]} · ${read ? 'Déjà lue (touche pour relire)' : 'À découvrir ✨'}`}
+                    </Text>
+                  </View>
+                  <View
+                    style={[
+                      styles.stateBadge,
+                      {
+                        backgroundColor: locked
+                          ? palette.surfaceAlt
+                          : read
+                          ? palette.surface
+                          : palette.accent,
+                        borderColor: palette.ink,
+                      },
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        styles.stateBadgeText,
+                        {
+                          color: locked || read ? palette.text : palette.onAccent,
+                        },
+                      ]}
+                    >
+                      {locked ? 'Bloquée' : scheduled ? 'Attente' : read ? 'Lue' : 'Ouvrir'}
+                    </Text>
+                  </View>
+                </Pressable>
+
+                {scheduledAt && scheduled ? (
+                  <View style={[styles.scheduleFooter, { borderTopColor: palette.border }]}>
+                    <Pressable
+                      accessibilityRole="button"
+                      onPress={() => void removeSchedule(surprise.id)}
+                      style={styles.cancelSchedule}
+                    >
+                      <Ionicons name="close-circle-outline" size={14} color={palette.accent} />
+                      <Text style={[styles.cancelScheduleText, { color: palette.accent }]}>
+                        Annuler la programmation
+                      </Text>
+                    </Pressable>
+                  </View>
+                ) : !locked && !read && !scheduled && !surprise.releaseAt ? (
+                  <View style={[styles.scheduleFooter, { borderTopColor: palette.border }]}>
+                    <Pressable
+                      accessibilityRole="button"
+                      onPress={() => {
+                        triggerHaptic();
+                        setDraftDate(new Date(Date.now() + 60 * 60 * 1000));
+                        setScheduleTargetId(surprise.id);
+                      }}
+                      style={styles.scheduleButton}
+                    >
+                      <Ionicons name="alarm-outline" size={14} color={palette.subtle} />
+                      <Text style={[styles.scheduleText, { color: palette.subtle }]}>
+                        Programmer pour plus tard
+                      </Text>
+                    </Pressable>
+                  </View>
+                ) : null}
+              </View>
+            </ChunkyCard>
+          );
+        })}
+      </View>
+
+      {/* Modal d'ouverture de l'enveloppe */}
+      <Modal
+        animationType="fade"
+        onRequestClose={() => setSelectedId(null)}
+        transparent
+        visible={Boolean(selected)}
+      >
         <View style={[styles.overlay, { backgroundColor: palette.overlay }]}>
           {selected ? (
-            <Animated.View entering={reduceMotion ? undefined : FadeInUp.duration(220)} style={[styles.messageCard, { backgroundColor: palette.surface }]}>
-              <View style={[styles.messageSeal, { backgroundColor: palette.pink }]}>
-                <Ionicons name="heart" size={22} color={palette.text} />
+            <Animated.View
+              entering={reduceMotion ? undefined : FadeInUp.duration(240)}
+              style={[styles.messageCard, { backgroundColor: palette.surface, borderColor: palette.ink }]}
+            >
+              <CrushyMascot expression="amoureuse" size={96} interactive />
+              <View style={[styles.messageSeal, { backgroundColor: palette.pink, borderColor: palette.ink }]}>
+                <Ionicons color={palette.ink} name="heart" size={20} />
               </View>
-              <Text style={[styles.messageKind, { color: palette.accent }]}>{kindLabels[selected.kind].toUpperCase()}</Text>
+              <Text style={[styles.messageKind, { color: palette.accent }]}>
+                {kindLabels[selected.kind].toUpperCase()}
+              </Text>
               <Text style={[styles.messageTitle, { color: palette.text }]}>{selected.title}</Text>
-              <Text style={[styles.message, { color: palette.subtle }]}>{selected.message}</Text>
-              {selectedEarnedXp ? <Text style={[styles.earned, { color: palette.accent }]}>+5 XP pour ta découverte</Text> : null}
-              <CrushyButton onPress={() => setSelectedId(null)}>Garder ce petit mot</CrushyButton>
+              <View style={[styles.letterBody, { backgroundColor: palette.surfaceAlt, borderColor: palette.ink }]}>
+                <Text style={[styles.message, { color: palette.text }]}>{selected.message}</Text>
+              </View>
+              {selectedEarnedXp ? (
+                <View style={[styles.xpEarnedPill, { backgroundColor: palette.mint, borderColor: palette.ink }]}>
+                  <Text style={[styles.earned, { color: palette.ink }]}>+5 XP pour ta découverte ! ✨</Text>
+                </View>
+              ) : null}
+              <CrushyButton onPress={() => setSelectedId(null)}>Garder ce petit mot 💖</CrushyButton>
             </Animated.View>
           ) : null}
         </View>
       </Modal>
 
-      <Modal animationType="fade" onRequestClose={() => setScheduleTargetId(null)} transparent visible={Boolean(scheduleTarget)}>
+      {/* Modal de programmation */}
+      <Modal
+        animationType="fade"
+        onRequestClose={() => setScheduleTargetId(null)}
+        transparent
+        visible={Boolean(scheduleTarget)}
+      >
         <View style={[styles.overlay, { backgroundColor: palette.overlay }]}>
           {scheduleTarget ? (
-            <View style={[styles.scheduleCard, { backgroundColor: palette.surface }]}>
+            <View style={[styles.scheduleCard, { backgroundColor: palette.surface, borderColor: palette.ink }]}>
               <Text style={[styles.messageKind, { color: palette.accent }]}>PROGRAMMER UNE SURPRISE</Text>
               <Text style={[styles.messageTitle, { color: palette.text }]}>{scheduleTarget.title}</Text>
-              <Text style={[styles.message, { color: palette.subtle }]}>Elle s’ouvrira le {formatDate(draftDate)}. Son contenu reste caché d’ici là.</Text>
+              <Text style={[styles.messageDesc, { color: palette.subtle }]}>
+                Elle s’ouvrira le {formatDate(draftDate)}. Son secret reste bien au chaud d’ici là.
+              </Text>
               <View style={[styles.pickerTabs, { backgroundColor: palette.surfaceAlt }]}>
                 {(['date', 'time'] as const).map((mode) => (
                   <Pressable
                     accessibilityRole="button"
                     accessibilityState={{ selected: pickerMode === mode }}
                     key={mode}
-                    onPress={() => setPickerMode(mode)}
-                    style={[styles.pickerTab, pickerMode === mode && { backgroundColor: palette.pink }]}
+                    onPress={() => {
+                      triggerHaptic();
+                      setPickerMode(mode);
+                    }}
+                    style={[
+                      styles.pickerTab,
+                      pickerMode === mode && { backgroundColor: palette.pink },
+                    ]}
                   >
-                    <Text style={[styles.pickerTabText, { color: palette.text }]}>{mode === 'date' ? 'Date' : 'Heure'}</Text>
+                    <Text style={[styles.pickerTabText, { color: palette.text }]}>
+                      {mode === 'date' ? 'Date' : 'Heure'}
+                    </Text>
                   </Pressable>
                 ))}
               </View>
@@ -361,9 +507,17 @@ export default function SurprisesScreen() {
                 onChange={updateDate}
                 value={draftDate}
               />
-              {!notificationsEnabled ? <Text style={[styles.notificationNote, { color: palette.subtle }]}>Les notifications sont désactivées : la surprise sera disponible à cette heure dans l’application.</Text> : null}
-              <CrushyButton disabled={busy} onPress={() => void saveSchedule()}>{busy ? 'Programmation…' : 'Confirmer'}</CrushyButton>
-              <CrushyButton secondary disabled={busy} onPress={() => setScheduleTargetId(null)}>Annuler</CrushyButton>
+              {!notificationsEnabled ? (
+                <Text style={[styles.notificationNote, { color: palette.subtle }]}>
+                  💡 Les notifications sont désactivées : l’enveloppe sera disponible dans l’application à cette heure.
+                </Text>
+              ) : null}
+              <CrushyButton disabled={busy} onPress={() => void saveSchedule()}>
+                {busy ? 'Programmation…' : 'Confirmer la date'}
+              </CrushyButton>
+              <CrushyButton secondary disabled={busy} onPress={() => setScheduleTargetId(null)}>
+                Annuler
+              </CrushyButton>
             </View>
           ) : null}
         </View>
@@ -373,29 +527,196 @@ export default function SurprisesScreen() {
 }
 
 const styles = StyleSheet.create({
-  summary: { borderRadius: designTokens.radius.md, padding: 14, marginTop: 6 },
-  summaryText: { fontSize: 13, lineHeight: 19, fontFamily: designTokens.typography.bold },
-  envelope: { borderWidth: 1, borderRadius: designTokens.radius.lg, padding: 12, marginBottom: 10 },
-  envelopeBody: { flexDirection: 'row', minHeight: 62, alignItems: 'center' },
-  seal: { width: 43, height: 43, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
-  envelopeText: { flex: 1, marginLeft: 12, paddingRight: 6 },
-  envelopeTitle: { fontSize: 14, fontFamily: designTokens.typography.bold },
-  envelopeHint: { fontSize: 11, lineHeight: 16, marginTop: 3 },
-  stateLabel: { fontSize: 10, fontFamily: designTokens.typography.bold, maxWidth: 67, textAlign: 'right' },
-  scheduleButton: { alignSelf: 'flex-end', paddingVertical: 7, paddingHorizontal: 8, marginTop: 3, minHeight: 36, justifyContent: 'center' },
-  scheduleText: { fontSize: 12, fontFamily: designTokens.typography.bold },
-  cancelSchedule: { alignSelf: 'flex-end', padding: 8, minHeight: 36, justifyContent: 'center' },
-  cancelScheduleText: { fontSize: 12, fontFamily: designTokens.typography.bold },
-  overlay: { flex: 1, justifyContent: 'center', padding: 24 },
-  messageCard: { borderRadius: designTokens.radius.xl, padding: 24, alignItems: 'center' },
-  messageSeal: { width: 54, height: 54, borderRadius: 20, alignItems: 'center', justifyContent: 'center', marginBottom: 13 },
-  messageKind: { fontSize: 10, letterSpacing: 1.1, fontFamily: designTokens.typography.bold },
-  messageTitle: { fontSize: 22, lineHeight: 28, textAlign: 'center', fontFamily: designTokens.typography.extraBold, marginTop: 8 },
-  message: { fontSize: 14, lineHeight: 22, textAlign: 'center', marginTop: 10 },
-  earned: { fontSize: 13, fontFamily: designTokens.typography.bold, marginTop: 12 },
-  scheduleCard: { borderRadius: designTokens.radius.xl, padding: 19 },
-  pickerTabs: { flexDirection: 'row', borderRadius: designTokens.radius.md, padding: 4, marginTop: 15 },
-  pickerTab: { flex: 1, minHeight: 40, alignItems: 'center', justifyContent: 'center', borderRadius: 12 },
-  pickerTabText: { fontSize: 13, fontFamily: designTokens.typography.bold },
-  notificationNote: { fontSize: 12, lineHeight: 18, marginTop: 7 },
+  summaryWrap: {
+    marginTop: 10,
+    marginBottom: 6,
+  },
+  summaryCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 14,
+    gap: 12,
+  },
+  summaryIcon: {
+    fontSize: 28,
+  },
+  summaryCopy: {
+    flex: 1,
+  },
+  summaryTitle: {
+    fontSize: 14,
+    fontFamily: designTokens.typography.extraBold,
+  },
+  summarySubtitle: {
+    fontSize: 11,
+    marginTop: 2,
+    opacity: 0.9,
+  },
+  envelopeList: {
+    gap: 10,
+  },
+  envelopeCardWrap: {
+    marginBottom: 2,
+  },
+  envelopeInner: {
+    padding: 14,
+  },
+  envelopeBody: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  seal: {
+    width: 44,
+    height: 44,
+    borderRadius: 18,
+    borderWidth: 2,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  envelopeText: {
+    flex: 1,
+  },
+  envelopeTitle: {
+    fontSize: 14,
+    fontFamily: designTokens.typography.bold,
+  },
+  envelopeHint: {
+    fontSize: 11,
+    lineHeight: 16,
+    marginTop: 3,
+  },
+  stateBadge: {
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: designTokens.radius.pill,
+    borderWidth: 1.5,
+  },
+  stateBadgeText: {
+    fontSize: 11,
+    fontFamily: designTokens.typography.bold,
+  },
+  scheduleFooter: {
+    marginTop: 10,
+    paddingTop: 8,
+    borderTopWidth: 1,
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+  },
+  scheduleButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    paddingVertical: 4,
+  },
+  scheduleText: {
+    fontSize: 11,
+    fontFamily: designTokens.typography.bold,
+  },
+  cancelSchedule: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    paddingVertical: 4,
+  },
+  cancelScheduleText: {
+    fontSize: 11,
+    fontFamily: designTokens.typography.bold,
+  },
+  overlay: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  messageCard: {
+    width: '100%',
+    maxWidth: 420,
+    borderRadius: designTokens.radius.xl,
+    borderWidth: 2.5,
+    padding: 22,
+    alignItems: 'center',
+  },
+  messageSeal: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    borderWidth: 2,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 8,
+    marginBottom: 6,
+  },
+  messageKind: {
+    fontSize: 10,
+    letterSpacing: 1.2,
+    fontFamily: designTokens.typography.bold,
+  },
+  messageTitle: {
+    fontSize: 20,
+    lineHeight: 26,
+    textAlign: 'center',
+    fontFamily: designTokens.typography.extraBold,
+    marginTop: 6,
+  },
+  letterBody: {
+    width: '100%',
+    borderRadius: designTokens.radius.md,
+    borderWidth: 1.5,
+    padding: 16,
+    marginTop: 14,
+    marginBottom: 10,
+  },
+  message: {
+    fontSize: 14,
+    lineHeight: 22,
+    textAlign: 'center',
+    fontFamily: designTokens.typography.regular,
+  },
+  xpEarnedPill: {
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+    borderRadius: designTokens.radius.pill,
+    borderWidth: 1.5,
+    marginBottom: 8,
+  },
+  earned: {
+    fontSize: 12,
+    fontFamily: designTokens.typography.bold,
+  },
+  scheduleCard: {
+    width: '100%',
+    maxWidth: 420,
+    borderRadius: designTokens.radius.xl,
+    borderWidth: 2.5,
+    padding: 20,
+  },
+  messageDesc: {
+    fontSize: 12,
+    lineHeight: 17,
+    marginTop: 6,
+  },
+  pickerTabs: {
+    flexDirection: 'row',
+    borderRadius: designTokens.radius.md,
+    padding: 4,
+    marginTop: 15,
+  },
+  pickerTab: {
+    flex: 1,
+    minHeight: 38,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 12,
+  },
+  pickerTabText: {
+    fontSize: 13,
+    fontFamily: designTokens.typography.bold,
+  },
+  notificationNote: {
+    fontSize: 11,
+    lineHeight: 16,
+    marginTop: 8,
+    marginBottom: 4,
+  },
 });

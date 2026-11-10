@@ -1,5 +1,7 @@
 import { useLocalSearchParams } from 'expo-router';
+import { KeyboardAvoidingView, Platform, StyleSheet } from 'react-native';
 import { CrushyScreen } from '../../components/CrushyScreen';
+import { MemoryGame } from '../../components/games/MemoryGame';
 import { PersonalityQuizGame } from '../../components/games/PersonalityQuizGame';
 import { TimedChallengeGame } from '../../components/games/TimedChallengeGame';
 import { TruthOrDareGame } from '../../components/games/TruthOrDareGame';
@@ -14,7 +16,7 @@ const games = {
   },
   'would-you-rather': {
     title: 'Tu préfères ?',
-    subtitle: 'Six dilemmes légers, six choix rien qu’à toi.',
+    subtitle: 'Douze dilemmes légers par série, avec de nouvelles questions à chaque partie.',
     Component: WouldYouRatherGame,
   },
   'word-guess': {
@@ -24,13 +26,18 @@ const games = {
   },
   'personality-quiz': {
     title: 'Quiz de personnalité',
-    subtitle: 'Cinq questions pour découvrir ton petit portrait.',
+    subtitle: 'Vingt questions pour découvrir ton petit portrait.',
     Component: PersonalityQuizGame,
   },
   'timed-challenge': {
     title: 'Défi chrono',
-    subtitle: 'Tape dix fois avant la fin des douze secondes !',
+    subtitle: 'Trois missions de réflexes à réussir en huit secondes.',
     Component: TimedChallengeGame,
+  },
+  'memory': {
+    title: 'Le Memory de Pip',
+    subtitle: 'Choisis entre 6, 12 ou 32 cartes et retrouve les paires à ton rythme.',
+    Component: MemoryGame,
   },
 } as const;
 
@@ -43,9 +50,25 @@ export default function GameScreen() {
   }
 
   const { Component } = game;
-  return (
+  const screen = (
     <CrushyScreen eyebrow="ZONE JEUX" title={game.title} subtitle={game.subtitle}>
       <Component />
     </CrushyScreen>
   );
+
+  if (slug !== 'word-guess') return screen;
+
+  return (
+    <KeyboardAvoidingView
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 64 : 0}
+      style={styles.keyboardAvoiding}
+    >
+      {screen}
+    </KeyboardAvoidingView>
+  );
 }
+
+const styles = StyleSheet.create({
+  keyboardAvoiding: { flex: 1 },
+});

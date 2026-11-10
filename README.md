@@ -12,10 +12,10 @@ Application mobile Expo / React Native en TypeScript, conçue pour Android et de
 ## Phase 2 — navigation et fondations techniques
 
 - Expo Router avec accueil, jeux, boîte à surprises, musique et profil en onglets.
-- Routes dédiées pour le splash, l’accueil initial, l’onboarding, l’humeur du jour, les jeux, les récompenses, les réglages et l’administration verrouillée.
+- Routes dédiées pour le splash, l’accueil initial, l’onboarding, l’humeur du jour, les jeux, les récompenses et les réglages.
 - Zustand persistant pour le pseudo, le thème, l’humeur, les préférences de notification et les premières données de progression.
 - React Hook Form + Zod pour valider l’onboarding.
-- Client Supabase optionnel avec clé publishable seulement et sessions conservées dans SecureStore.
+- Client Supabase optionnel avec clé publishable seulement et sessions conservées localement selon la plateforme.
 - Expo Notifications avec demande de permission explicite, Reanimated pour les animations, StyleSheet pour le design.
 
 Les mini-jeux et la progression fonctionnent localement. Les surprises, citations, défis, questions et suggestions musicales publiés dans Supabase peuvent compléter les contenus intégrés.
@@ -41,14 +41,26 @@ Les contenus de jeux sont embarqués dans `src/games/gameData.ts`; leur administ
 
 Les horaires de programmation personnelle et les données de progression restent stockés localement sur l’appareil. Les contenus publiés par l’administrateur sont lus depuis Supabase quand le projet est configuré.
 
-## Phase 10 — administration Supabase
+## Phase 10 — application d’administration Supabase
+
+L’administration est une application Expo indépendante dans `admin-app/`, sans menu ni route dans CRUSHY. Elle est destinée au Web et partage les composants et validations d’administration avec le dépôt.
 
 - Connexion propriétaire par e-mail/mot de passe ; aucun formulaire d’inscription ou rôle admin n’est exposé dans l’application.
 - Vérification du compte dans `admin_roles`, puis CRUD des surprises, citations, défis, questions Action/Vérité et Tu préfères ?, recommandations musicales et catégories.
 - Programmation de publication des surprises et défis, brouillons/publication et statistiques protégées par une fonction SQL.
 - Les données publiées alimentent la boîte à surprises, les contenus du jour, les suggestions musicales et les questions Action/Vérité / Tu préfères ?.
-- Le contrôle visuel de la route admin n’est qu’une barrière UX : toutes les modifications et statistiques sont également filtrées côté base par RLS et `is_admin()`.
+- L’interface de connexion n’est qu’une barrière UX : toutes les modifications et statistiques sont également filtrées côté base par RLS et `is_admin()`.
 - La vue publique des questions ne retourne jamais les réponses privées.
+
+Pour lancer ou exporter le tableau de bord séparément :
+
+```powershell
+Copy-Item admin-app\.env.example admin-app\.env
+npm run admin:web
+npm run admin:export
+```
+
+Renseigne dans `admin-app/.env` l’URL Supabase et la clé publishable du projet. L’export Web indépendant est créé dans `admin-app/dist`.
 
 ## Expérience — états, sons et animations
 
@@ -70,9 +82,43 @@ Les horaires de programmation personnelle et les données de progression restent
    on conflict (user_id) do nothing;
    ```
 
-4. Configure `EXPO_PUBLIC_SUPABASE_URL` et `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY` dans `.env`, puis redémarre Expo. N’utilise jamais la clé `service_role` dans l’application.
+4. Configure `EXPO_PUBLIC_SUPABASE_URL` et `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY` dans le `.env` de CRUSHY et dans `admin-app/.env` pour le tableau de bord. N’utilise jamais la clé `service_role` dans une application cliente.
 
-Les contenus publiés peuvent être lus anonymement ; l’écriture, les réponses aux questions et les statistiques admin sont protégées par les rôles et les politiques RLS. Les statistiques cloud comptent les activités enregistrées dans la base ; la progression actuelle (XP, jeux, lectures et historique) reste locale et est affichée séparément sur l’appareil.
+Les contenus publiés peuvent être lus anonymement ; l’écriture, les réponses aux questions et les statistiques d’administration sont protégées par les rôles et les politiques RLS. Les statistiques cloud comptent les activités enregistrées dans la base ; la progression personnelle reste locale à CRUSHY.
+
+### Génération quotidienne par IA
+
+Une Edge Function Supabase utilise le modèle `openai/gpt-oss-20b` hébergé par **Groq** pour générer chaque jour une citation, une blague, une pensée et une question pour chacune des six humeurs, ainsi qu’un défi commun. Le contenu est validé, enregistré dans les tables existantes et publié sans appel IA depuis l’application mobile. La clé reste côté serveur ; les contenus locaux continuent de servir de repli. L’offre Groq Free est à 0 $ pour créer et tester, avec des limites de requêtes et de débit qui peuvent changer ; aucun renseignement personnel n’est envoyé dans le prompt.
+
+Après avoir appliqué les migrations :
+
+1. Crée une clé dans [GroqCloud](https://console.groq.com/keys). Dans **Edge Functions → Secrets**, configure `GROQ_API_KEY` et un secret aléatoire `DAILY_CONTENT_CRON_SECRET`.
+2. Déploie la fonction avec `supabase functions deploy generate-daily-content`.
+3. Active les extensions `pg_cron`, `pg_net` et Vault dans le tableau de bord Supabase.
+4. Dans le SQL Editor, enregistre l’URL du projet et le même secret cron, puis planifie la génération quotidienne (une seule fois) :
+
+   ```sql
+   select vault.create_secret('https://<project-ref>.supabase.co', 'crushy_project_url');
+   select vault.create_secret('<même valeur que DAILY_CONTENT_CRON_SECRET>', 'crushy_daily_content_cron_secret');
+
+   select cron.schedule(
+     'generate-crushy-daily-content',
+     '0 8 * * *',
+     $$
+     select net.http_post(
+       url := (select decrypted_secret from vault.decrypted_secrets where name = 'crushy_project_url')
+         || '/functions/v1/generate-daily-content',
+       headers := jsonb_build_object(
+         'Content-Type', 'application/json',
+         'x-cron-secret', (select decrypted_secret from vault.decrypted_secrets where name = 'crushy_daily_content_cron_secret')
+       ),
+       body := '{}'::jsonb
+     );
+     $$
+   );
+   ```
+
+Le cron s’exécute à 08:00 UTC. Les lignes portent une clé unique par date, humeur et type, ce qui rend les relances idempotentes.
 
 ## Démarrer
 
@@ -111,8 +157,9 @@ npm run android:export
 
 ## Architecture
 
-- `src/app/` : routes Expo Router, parcours d’accueil et navigation par onglets.
-- `src/admin/` : formulaires validés et accès aux opérations d’administration, soumis à RLS.
+- `src/app/` : routes Expo Router de CRUSHY, parcours d’accueil et navigation par onglets.
+- `admin-app/` : application Expo autonome du tableau de bord administrateur.
+- `src/admin/` : écran, formulaires validés et accès aux opérations d’administration, soumis à RLS et partagés avec `admin-app/`.
 - `src/components/` : composants d’interface réutilisables.
 - `src/lib/` : intégrations Supabase, contenus publiés et notifications.
 - `supabase/migrations/` : schéma relationnel, vue publique sans réponses, fonction de rôle et politiques RLS.
@@ -136,4 +183,7 @@ npm run android:export
 | Récompenses | `/rewards` |
 | Profil | `/(tabs)/profile` |
 | Réglages | `/settings` |
-| Administration propriétaire | `/admin` |
+
+### Playlists Spotify
+
+La section **Musique** ne demande aucune connexion Spotify. Elle affiche des recommandations intégrées et des playlists Spotify publiques correspondant aux six humeurs. Les morceaux et playlists s’ouvrent dans l’application Spotify ou dans le navigateur selon l’appareil.

@@ -54,20 +54,21 @@ export const musicQuotes: Record<Mood, string> = {
   rêveuse: 'Certaines mélodies donnent l’impression d’ouvrir une fenêtre sur ailleurs.',
 };
 
+/** Playlists publiques existantes, sélectionnées pour chaque humeur. */
+export const moodPlaylists: Record<Mood, { title: string; url: string }> = {
+  heureuse: { title: 'Mood Booster', url: 'https://open.spotify.com/playlist/37i9dQZF1DX3rxVfibe1L0' },
+  triste: { title: 'Sad Songs', url: 'https://open.spotify.com/playlist/37i9dQZF1DX7qK8ma5wgG1' },
+  amoureuse: { title: 'Love Pop', url: 'https://open.spotify.com/playlist/37i9dQZF1DX50QitC6Oqtn' },
+  énergique: { title: 'Beast Mode', url: 'https://open.spotify.com/playlist/37i9dQZF1DX76Wlfdnj7AP' },
+  fatiguée: { title: 'Deep Focus', url: 'https://open.spotify.com/playlist/37i9dQZF1DWZeKCadgRdKQ' },
+  rêveuse: { title: 'Dreampop', url: 'https://open.spotify.com/playlist/37i9dQZF1DX6uhsAfngvaD' },
+};
+
 export function getMusicSearchUrl(title: string, artist: string): string {
   const query = encodeURIComponent(`${title} ${artist}`);
   return `https://open.spotify.com/search/${query}`;
 }
 
-export function getPlaylistSearchUrl(mood: Mood): string {
-  const queries: Record<Mood, string> = {
-    heureuse: 'feel good happy pop playlist',
-    triste: 'soft comforting songs playlist',
-    amoureuse: 'romantic love songs playlist',
-    énergique: 'upbeat dance pop playlist',
-    fatiguée: 'calm relaxing instrumental playlist',
-    rêveuse: 'dreamy indie atmospheric playlist',
-  };
-  const query = encodeURIComponent(queries[mood]);
-  return `https://open.spotify.com/search/${query}/playlists`;
+export function getMoodPlaylistUrl(mood: Mood): string {
+  return moodPlaylists[mood].url;
 }

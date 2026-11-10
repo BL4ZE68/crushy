@@ -1,6 +1,7 @@
 import Nunito_400Regular from '@expo-google-fonts/nunito/400Regular/Nunito_400Regular.ttf';
 import Nunito_700Bold from '@expo-google-fonts/nunito/700Bold/Nunito_700Bold.ttf';
 import Nunito_800ExtraBold from '@expo-google-fonts/nunito/800ExtraBold/Nunito_800ExtraBold.ttf';
+import { Ionicons } from '@expo/vector-icons';
 import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
@@ -14,7 +15,7 @@ import { useCrushyTheme } from '../theme/useCrushyTheme';
 import { useReducedMotion } from 'react-native-reanimated';
 
 export default function RootLayout() {
-  const [fontsLoaded] = useFonts({ Nunito_400Regular, Nunito_700Bold, Nunito_800ExtraBold });
+  const [fontsLoaded] = useFonts({ ...Ionicons.font, Nunito_400Regular, Nunito_700Bold, Nunito_800ExtraBold });
   const { palette, isDark } = useCrushyTheme();
   const reduceMotion = useReducedMotion();
 
@@ -42,7 +43,6 @@ export default function RootLayout() {
             <Stack.Screen name="daily" options={{ title: 'Humeur du jour' }} />
             <Stack.Screen name="rewards" options={{ title: 'Mes récompenses' }} />
             <Stack.Screen name="settings" options={{ title: 'Réglages' }} />
-            <Stack.Screen name="admin" options={{ title: 'Espace privé' }} />
             <Stack.Screen name="game/[slug]" options={{ title: 'Mini-jeu' }} />
           </Stack>
           <CrushyAchievementCelebration />

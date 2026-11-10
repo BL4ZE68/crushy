@@ -19,6 +19,7 @@
     "expo-router": "~58.0.30",
     "expo-secure-store": "~58.0.2",
     "expo-status-bar": "~58.0.4",
+    "expo-web-browser": "~58.0.7",
     "react": "19.3.0",
     "react-dom": "19.3.0",
     "react-hook-form": "^7.91.0",
@@ -42,6 +43,8 @@
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
+    "admin:web": "npm --prefix admin-app run web",
+    "admin:export": "npm --prefix admin-app run export:web",
     "typecheck": "tsc --noEmit",
     "android:export": "expo export --platform android",
     "test": "tsc --ignoreConfig --target ES2022 --module Node16 --moduleResolution Node16 --strict --skipLibCheck --rootDir src --outDir node_modules/.cache/crushy-tests src/games/gameData.ts src/daily/content.ts src/music/recommendations.ts src/rewards/achievements.ts src/admin/validation.ts && node --test tests/*.test.cjs"

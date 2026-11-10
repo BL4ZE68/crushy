@@ -44,3 +44,4 @@ yarn-error.*
 
 # Supabase CLI state
 supabase/.temp/
+supabase/functions/.env

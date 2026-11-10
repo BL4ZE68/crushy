@@ -3,17 +3,16 @@ import { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { z } from 'zod';
-import { AdminContentManager } from '../admin/AdminContentManager';
+import { AdminContentManager } from './AdminContentManager';
 import {
   adminSections,
   AdminStatistics,
   fetchAdminStatistics,
-} from '../admin/adminApi';
-import { AdminSection } from '../admin/validation';
+} from './adminApi';
+import { AdminSection } from './validation';
 import { CrushyButton } from '../components/CrushyButton';
 import { CrushyScreen, SectionHeading } from '../components/CrushyScreen';
 import { supabase } from '../lib/supabase';
-import { useCrushyStore } from '../store/useCrushyStore';
 import { designTokens } from '../theme/theme';
 import { useCrushyTheme } from '../theme/useCrushyTheme';
 
@@ -42,11 +41,6 @@ export default function AdminScreen() {
   const [activeSection, setActiveSection] = useState<AdminSection>('surprises');
   const [statistics, setStatistics] = useState<AdminStatistics | null>(null);
   const [statisticsError, setStatisticsError] = useState('');
-  const localXp = useCrushyStore((state) => state.xp);
-  const localActivities = useCrushyStore((state) => state.activities.length);
-  const localSurprises = useCrushyStore((state) => state.openedSurpriseIds.length);
-  const localScheduled = useCrushyStore((state) => Object.keys(state.scheduledSurprises).length);
-  const localGames = useCrushyStore((state) => Object.values(state.gameCompletions).reduce((total, count) => total + count, 0));
   const {
     control,
     handleSubmit,
@@ -269,17 +263,9 @@ export default function AdminScreen() {
             <CrushyButton secondary onPress={() => void signOut()}>Se déconnecter</CrushyButton>
           </View>
 
-          <SectionHeading>Activité sur cet appareil</SectionHeading>
-          <View style={styles.stats}>
-            <LocalMetric label="XP obtenus" value={localXp} />
-            <LocalMetric label="Parties terminées" value={localGames} />
-            <LocalMetric label="Surprises ouvertes" value={localSurprises} />
-            <LocalMetric label="Programmations locales" value={localScheduled} />
-            <LocalMetric label="Activités récentes" value={localActivities} />
-          </View>
           <SectionHeading>Statistiques synchronisées Supabase</SectionHeading>
           <Text style={[styles.help, { color: palette.subtle }]}>
-            Ces compteurs concernent les activités enregistrées dans la base. La progression actuelle de CRUSHY reste locale à cet appareil.
+            Ces compteurs concernent les activités enregistrées dans Supabase. La progression personnelle reste dans l’application CRUSHY.
           </Text>
           {statisticsError ? <Text accessibilityRole="alert" style={[styles.error, { color: palette.accent }]}>{statisticsError}</Text> : null}
           <View style={styles.stats}>
@@ -332,16 +318,6 @@ function SectionButton({ label, onPress, selected }: { label: string; onPress: (
     >
       {label}
     </Text>
-  );
-}
-
-function LocalMetric({ label, value }: { label: string; value: number }) {
-  const { palette } = useCrushyTheme();
-  return (
-    <View style={[styles.stat, { backgroundColor: palette.surface, borderColor: palette.border }]}>
-      <Text style={[styles.statValue, { color: palette.text }]}>{value}</Text>
-      <Text style={[styles.statLabel, { color: palette.subtle }]}>{label}</Text>
-    </View>
   );
 }
 

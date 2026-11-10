@@ -411,7 +411,8 @@ values
   ('would-you-rather', 'Tu préfères ?'),
   ('word-guess', 'Devine le mot'),
   ('personality-quiz', 'Quiz de personnalité'),
-  ('timed-challenge', 'Défi chrono')
+  ('timed-challenge', 'Défi chrono'),
+  ('memory', 'Le Memory de Pip')
 on conflict (slug) do nothing;
 
 insert into public.content_categories (kind, slug, name)

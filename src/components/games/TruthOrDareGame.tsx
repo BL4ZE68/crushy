@@ -1,23 +1,34 @@
 import { useEffect, useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, Vibration, View } from 'react-native';
 import { CrushyButton } from '../CrushyButton';
 import { GameFeedback } from './GameFeedback';
 import { GameOption } from './GameOption';
 import { designTokens } from '../../theme/theme';
 import { useCrushyStore } from '../../store/useCrushyStore';
 import { useCrushyTheme } from '../../theme/useCrushyTheme';
-import { GamePrompt, getRandomPrompt, PromptCategory, PromptKind, promptCategories } from '../../games/gameData';
+import { GamePrompt, getDailyIndex, getRandomPrompt, PromptCategory, PromptKind, promptCategories } from '../../games/gameData';
 import { fetchPublishedGameQuestions } from '../../lib/publicContent';
 
 export function TruthOrDareGame() {
   const { palette } = useCrushyTheme();
-  const addXp = useCrushyStore((state) => state.addXp);
+  const completeGame = useCrushyStore((state) => state.completeGame);
+  const hapticsEnabled = useCrushyStore((state) => state.hapticsEnabled);
   const [category, setCategory] = useState<PromptCategory>('drôle');
   const [kind, setKind] = useState<PromptKind>('vérité');
-  const [prompt, setPrompt] = useState<GamePrompt>(() => getRandomPrompt('drôle', 'vérité'));
+  const [prompt, setPrompt] = useState<GamePrompt>(() => getRandomPrompt('drôle', 'vérité', undefined, () => getDailyIndex(10) / 10));
   const [feedback, setFeedback] = useState('');
   const [customPrompts, setCustomPrompts] = useState<GamePrompt[]>([]);
   const [contentError, setContentError] = useState('');
+
+  function triggerHaptic(duration = 20) {
+    if (hapticsEnabled) {
+      try {
+        Vibration.vibrate(duration);
+      } catch {
+        // Ignoré
+      }
+    }
+  }
 
   useEffect(() => {
     let active = true;
@@ -49,20 +60,29 @@ export function TruthOrDareGame() {
   }, []);
 
   function chooseCategory(next: PromptCategory) {
+    triggerHaptic();
     setCategory(next);
     setFeedback('');
     setPrompt(getRandomPrompt(next, kind, prompt.id, Math.random, customPrompts));
   }
 
   function chooseKind(next: PromptKind) {
+    triggerHaptic();
     setKind(next);
     setFeedback('');
     setPrompt(getRandomPrompt(category, next, undefined, Math.random, customPrompts));
   }
 
   function nextPrompt() {
+    triggerHaptic();
     setFeedback('');
     setPrompt(getRandomPrompt(category, kind, prompt.id, Math.random, customPrompts));
+  }
+
+  function handleCompletePrompt() {
+    triggerHaptic(40);
+    completeGame('truth-or-dare', 5);
+    setFeedback('Bravo, défi validé ! +5 XP ✨');
   }
 
   return (
@@ -95,8 +115,8 @@ export function TruthOrDareGame() {
       {contentError ? <Text style={[styles.contentError, { color: palette.subtle }]}>{contentError} Les questions intégrées restent disponibles.</Text> : null}
       {feedback ? <GameFeedback success>{feedback}</GameFeedback> : null}
       <CrushyButton secondary onPress={nextPrompt}>Passer cette question</CrushyButton>
-      <CrushyButton disabled={Boolean(feedback)} onPress={() => { addXp(5, 'Défi action ou vérité réussi'); setFeedback('Bravo, +5 XP pour ce petit défi !'); }}>
-        {feedback ? 'Défi coché' : 'C’est fait, +5 XP'}
+      <CrushyButton disabled={Boolean(feedback)} onPress={handleCompletePrompt}>
+        {feedback ? 'Défi coché ✨' : 'C’est fait, +5 XP'}
       </CrushyButton>
     </View>
   );

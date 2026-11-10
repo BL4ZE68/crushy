@@ -48,10 +48,10 @@ export function CrushyAchievementCelebration() {
         accessibilityLiveRegion="polite"
         accessibilityRole="alert"
         entering={reduceMotion ? undefined : FadeInUp.duration(220)}
-        style={[styles.toast, { backgroundColor: palette.text }]}
+        style={[styles.toast, { backgroundColor: palette.yellow, borderColor: palette.ink }]}
       >
-        <Text style={[styles.toastText, { color: palette.background }]}>
-          {newBadges === 1 ? 'Nouveau badge débloqué !' : `${newBadges} nouveaux badges débloqués !`}
+        <Text style={[styles.toastText, { color: palette.text }]}>
+          {newBadges === 1 ? '✨ Nouveau badge débloqué ! 🏆' : `✨ ${newBadges} nouveaux badges débloqués ! 🏆`}
         </Text>
       </Animated.View>
     </View>
@@ -115,12 +115,18 @@ function ConfettiPiece({
 const styles = StyleSheet.create({
   toast: {
     position: 'absolute',
-    top: 52,
+    top: 56,
     alignSelf: 'center',
     borderRadius: designTokens.radius.pill,
-    paddingHorizontal: 18,
-    paddingVertical: 11,
+    borderWidth: 2,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.15,
+    shadowRadius: 5,
+    elevation: 4,
   },
-  toastText: { fontSize: 13, fontFamily: designTokens.typography.bold },
+  toastText: { fontSize: 14, fontFamily: designTokens.typography.extraBold },
   confetti: { position: 'absolute', width: 7, borderRadius: 2 },
 });

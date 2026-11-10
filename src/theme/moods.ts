@@ -19,7 +19,7 @@ export const moodMeta: Record<Mood, MoodMeta> = {
   énergique: { emoji: '⚡', tint: (p) => p.peach, line: 'On y va ? J’ai de l’énergie pour deux !' },
   rêveuse: { emoji: '☁️', tint: (p) => p.mint, line: 'Tes pensées ont l’air bien jolies…' },
   fatiguée: { emoji: '😴', tint: (p) => p.lavender, line: 'On y va tout doucement, d’accord ?' },
-  triste: { emoji: '🥺', tint: (p) => p.sky, line: 'Je reste là, tout près de toi.' },
+  triste: { emoji: '😢', tint: (p) => p.sky, line: 'Je reste là, tout près de toi.' },
 };
 
 export const defaultMoodLine = 'Coucou ! Dis-moi comment tu te sens.';
