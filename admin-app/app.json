@@ -3,6 +3,7 @@
     "name": "CRUSHY Admin",
     "slug": "crushy-admin",
     "version": "1.0.0",
+    "icon": "../assets/icon.png",
     "orientation": "portrait",
     "scheme": "crushy-admin",
     "userInterfaceStyle": "automatic",
@@ -11,16 +12,33 @@
       "supportsTablet": true
     },
     "android": {
-      "package": "com.crushy.admin"
+      "package": "com.crushy.admin",
+      "adaptiveIcon": {
+        "backgroundColor": "#FFF9FC",
+        "foregroundImage": "../assets/android-icon-foreground.png",
+        "monochromeImage": "../assets/android-icon-monochrome.png"
+      }
     },
     "web": {
       "bundler": "metro",
-      "output": "single"
+      "output": "single",
+      "favicon": "../assets/favicon.png"
     },
     "plugins": [
       "expo-router",
       "expo-secure-store",
       "@react-native-community/datetimepicker"
-    ]
+    ],
+    "extra": {
+      "router": {
+        "asyncRoutes": {
+          "web": true
+        }
+      },
+      "eas": {
+        "projectId": "0580315f-b6c1-4f4b-9cbc-8bb1382aeb6a"
+      }
+    },
+    "owner": "bl4ze25"
   }
 }
